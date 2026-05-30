@@ -1,0 +1,116 @@
+<app-page-header title="Employees" subtitle="Manage employees and their linked banking accounts.">
+  <a routerLink="/employees/new" class="btn btn-primary" data-cy="new-employee">+ New Employee</a>
+</app-page-header>
+
+<app-employee-filter [initialQuery]="query()" (changed)="onFilterChanged($event)"></app-employee-filter>
+
+<section class="card mt-4">
+  @if (loading()) {
+    <div class="row" style="justify-content: center; padding: 24px;">
+      <app-loading-spinner label="Loading employees"></app-loading-spinner>
+      <span class="text-muted">Loading employees...</span>
+    </div>
+  } @else if (items().length === 0) {
+    <!--
+      Signals collapse the previous (loading$ | async) / (items$ | async; as items)
+      double-nest into a flat @if / @else if / @else chain. Each `items()` and
+      `loading()` call is a synchronous read against the bridged signal.
+    -->
+    <app-empty-state
+      icon="i"
+      title="No employees match your filters"
+      message="Try clearing the filters or create a new employee.">
+      <a routerLink="/employees/new" class="btn btn-primary mt-3">Create employee</a>
+    </app-empty-state>
+  } @else {
+    <div class="table-scroll" data-cy="employee-table">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>
+              <button class="th-button" type="button" (click)="onSort('lastName')">
+                Name{{ sortIndicator('lastName') }}
+              </button>
+            </th>
+            <th class="hidden-portrait">
+              <button class="th-button" type="button" (click)="onSort('email')">
+                Email{{ sortIndicator('email') }}
+              </button>
+            </th>
+            <th>
+              <button class="th-button" type="button" (click)="onSort('role')">
+                Role{{ sortIndicator('role') }}
+              </button>
+            </th>
+            <th>
+              <button class="th-button" type="button" (click)="onSort('status')">
+                Status{{ sortIndicator('status') }}
+              </button>
+            </th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of items(); track e.employeeId) {
+            <tr data-cy="employee-row">
+              <td>
+                <a [routerLink]="['/employees', e.employeeId]" data-cy="employee-link">
+                  {{ e.firstName }} {{ e.lastName }}
+                </a>
+              </td>
+              <td class="hidden-portrait">{{ e.email }}</td>
+              <td><span class="badge role">{{ e.role }}</span></td>
+              <td>
+                <span class="badge" [class.active]="e.status === 'ACTIVE'" [class.inactive]="e.status === 'INACTIVE'">
+                  {{ e.status }}
+                </span>
+              </td>
+              <td class="text-right">
+                <a [routerLink]="['/employees', e.employeeId, 'edit']" class="btn btn-secondary btn-sm" data-cy="edit-employee">
+                  Edit
+                </a>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="requestDelete(e)" data-cy="delete-employee">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!--
+      Pagination footer. Note how `totalPages()` is read directly in the
+      (click) handler - the earlier "no pipe in action expression" workaround
+      (wrapping the whole thing in an @if/as) is gone because signals are
+      synchronous reads, not pipes.
+    -->
+    <footer class="pagination">
+      <span class="text-muted">{{ pageSummary() }}</span>
+      <div class="row">
+        <label for="size" class="text-muted">Rows</label>
+        <select id="size" [value]="size()" (change)="onPageSize(+($any($event.target).value))">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" type="button"
+                [disabled]="page() <= 1"
+                (click)="onPage(-1, totalPages())">Prev</button>
+        <button class="btn btn-secondary btn-sm" type="button"
+                [disabled]="page() >= totalPages()"
+                (click)="onPage(1, totalPages())">Next</button>
+      </div>
+    </footer>
+  }
+</section>
+
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  [title]="'Delete employee?'"
+  [message]="(pendingDelete() ? 'This will permanently remove ' + pendingDelete()!.firstName + ' ' + pendingDelete()!.lastName + ' and close all of their accounts.' : '')"
+  confirmLabel="Delete"
+  cancelLabel="Cancel"
+  [destructive]="true"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"></app-confirm-dialog>

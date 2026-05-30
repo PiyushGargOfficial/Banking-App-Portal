@@ -1,0 +1,30 @@
+/* Local styles for the employee list page. */
+.th-button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  &:hover { color: var(--color-primary); }
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* Phone: count text sits on its own line, then the rows-per-page select +
+   prev/next pair below it. Both rows full-width so taps have generous
+   targets even on a narrow screen. */
+@media (max-width: 480px) {
+  .pagination { gap: 8px; margin-top: 8px; }
+  .pagination > span { flex-basis: 100%; font-size: 12px; }
+  .pagination > .row { flex-basis: 100%; justify-content: space-between; gap: 6px; }
+  .pagination select { padding: 6px 8px; }
+}

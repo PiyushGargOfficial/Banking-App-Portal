@@ -1,0 +1,72 @@
+@if (loading()) {
+  <div class="card row" style="justify-content:center;">
+    <app-loading-spinner label="Loading employee"></app-loading-spinner>
+    <span class="text-muted">Loading employee...</span>
+  </div>
+} @else {
+  <!--
+    `as` aliases are only allowed on the primary @if block. employee()
+    is a signal read; binding it via `as emp` keeps the rest of the
+    template terse and lets the type-checker narrow `emp` to non-null.
+  -->
+  @if (employee(); as emp) {
+    <app-page-header
+      [title]="emp.firstName + ' ' + emp.lastName"
+      [subtitle]="emp.email">
+      <a routerLink="/employees" class="btn btn-ghost">Back</a>
+      <a [routerLink]="['/employees', emp.employeeId, 'edit']" class="btn btn-secondary" data-cy="edit-employee">Edit</a>
+      <button type="button" class="btn btn-danger" (click)="requestDelete()" data-cy="delete-employee" [disabled]="deleting()">
+        Delete
+      </button>
+    </app-page-header>
+
+    <section class="card" data-cy="employee-summary">
+      <div class="summary-grid">
+        <div>
+          <div class="text-muted">Role</div>
+          <span class="badge role">{{ emp.role }}</span>
+        </div>
+        <div>
+          <div class="text-muted">Status</div>
+          <div class="row">
+            <span class="badge" [class.active]="emp.status === 'ACTIVE'" [class.inactive]="emp.status === 'INACTIVE'">
+              {{ emp.status }}
+            </span>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="toggleStatus(emp)" data-cy="toggle-status">
+              Mark {{ emp.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="text-muted">Created</div>
+          <div>{{ emp.createdAt ? (emp.createdAt | date: 'mediumDate') : '-' }}</div>
+        </div>
+        <div>
+          <div class="text-muted">Last updated</div>
+          <div>{{ emp.updatedAt ? (emp.updatedAt | date: 'medium') : '-' }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Parent/child relationship: detail (parent) passes the employee id to AccountList (child). -->
+    <app-account-list class="mt-5" [employeeId]="emp.employeeId"></app-account-list>
+
+    <!-- Append-only audit log for this employee (profile + their accounts). -->
+    <app-employee-audit-log class="mt-5" [employeeId]="emp.employeeId"></app-employee-audit-log>
+
+    <app-confirm-dialog
+      [open]="confirmOpen()"
+      title="Delete employee?"
+      [message]="'This will permanently remove ' + emp.firstName + ' ' + emp.lastName + ' and close all of their accounts.'"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      [destructive]="true"
+      (confirmed)="confirmDelete(emp)"
+      (cancelled)="cancelDelete()"></app-confirm-dialog>
+  } @else {
+    <div class="card">
+      <p>Employee not found.</p>
+      <button type="button" class="btn btn-secondary" (click)="navigateBack()">Back to list</button>
+    </div>
+  }
+}

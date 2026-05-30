@@ -1,0 +1,41 @@
+{
+  "name": "banking-admin-portal-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Express mock backend for the Banking Admin Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "banking-admin-portal": "file:..",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/__tests__/**/*.test.js"],
+    "collectCoverageFrom": [
+      "services/**/*.js",
+      "repositories/**/*.js",
+      "validators/**/*.js",
+      "utils/**/*.js",
+      "controllers/**/*.js",
+      "middleware/**/*.js"
+    ],
+    "coverageReporters": ["text", "text-summary", "html"],
+    "verbose": true
+  }
+}

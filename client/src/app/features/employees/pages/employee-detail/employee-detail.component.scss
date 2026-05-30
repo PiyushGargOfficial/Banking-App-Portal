@@ -1,0 +1,24 @@
+.summary-grid {
+  display: grid;
+  /* Cap each tile at 280px so the 4 fixed summary entries don't stretch
+     to 400px+ on 2K/4K monitors. justify-content keeps them flush left
+     when the container is wider than 4 * 280 + gaps. */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 280px));
+  justify-content: start;
+  gap: 16px;
+}
+
+/* Tablet portrait: force a 2 x 2 layout so the four tiles always pair
+   cleanly instead of dropping to an awkward 3 + 1 wrap. */
+@media (max-width: 768px) {
+  .summary-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .summary-grid { grid-template-columns: 1fr; }
+}
+
+/* Big screens: give the tiles a touch more room each. */
+@media (min-width: 1920px) {
+  .summary-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 320px)); gap: 20px; }
+}

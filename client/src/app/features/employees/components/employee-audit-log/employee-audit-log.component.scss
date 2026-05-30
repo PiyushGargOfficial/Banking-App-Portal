@@ -1,0 +1,205 @@
+/* Component-scoped styles for the audit log card. */
+:host { display: block; }
+
+.audit-error {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-left: 4px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+}
+
+/* Vertical timeline-style list. */
+.audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.audit-entry {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color 120ms ease;
+
+  &:hover { border-color: var(--color-border); }
+}
+
+.audit-entry__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* On tablet portrait the timestamp drops below the badge / resource row
+   so the head doesn't collapse into a single tight line. */
+@media (max-width: 768px) {
+  .audit-entry__head { gap: var(--space-2); }
+  .audit-entry__when { margin-left: 0; flex-basis: 100%; }
+}
+
+/* Phone: tighten entry padding, gaps, and the snapshot grid so the
+   trail stays scannable on a ~390px screen. */
+@media (max-width: 480px) {
+  .audit-entry { padding: var(--space-3); gap: var(--space-2); }
+  .audit-entry__resource { font-size: 12px; }
+  .audit-entry__account { font-size: 11px; padding: 1px 6px; }
+  .audit-entry__when { font-size: 11px; }
+  .audit-snapshot { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .audit-snapshot__pair { padding: 5px 8px; font-size: 12px; }
+  .audit-snapshot__pair dt { font-size: 10px; }
+  .audit-changes li { padding: 5px 8px; font-size: 12px; }
+  .audit-changes__field { min-width: 60px; }
+  .audit-entry__foot { gap: var(--space-3); font-size: 10px; }
+  .audit-entry__cid code { font-size: 10px; padding: 1px 4px; }
+}
+
+.audit-entry__resource {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.audit-entry__account {
+  background: var(--color-primary-soft);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.audit-entry__when {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.audit-entry__body { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.audit-entry__foot {
+  display: flex;
+  gap: var(--space-4);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border-soft);
+}
+
+.audit-entry__cid {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.audit-entry__cid code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: var(--color-surface-alt);
+  padding: 1px 6px;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+/* Snapshot (CREATE / DELETE) - "field: value" pairs. */
+.audit-snapshot {
+  display: grid;
+  /* Cap pair width so emails / long values get the space they need but
+     short tokens (status, role) don't sprawl across the row on 2K/4K. */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 320px));
+  justify-content: start;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+/* Big screens: give each pair a touch more horizontal room for emails. */
+@media (min-width: 1920px) {
+  .audit-snapshot { grid-template-columns: repeat(auto-fit, minmax(220px, 360px)); gap: var(--space-3); }
+}
+
+.audit-snapshot__pair {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 13px;
+  dt { font-weight: 600; color: var(--color-text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+  dd { margin: 2px 0 0; color: var(--color-text); }
+}
+
+/* UPDATE diff list. */
+.audit-changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: 13px;
+    padding: 6px 10px;
+    background: var(--color-primary-tint);
+    border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+  }
+}
+
+.audit-changes__field {
+  font-weight: 700;
+  color: var(--color-primary-deep);
+  min-width: 90px;
+}
+.audit-changes__before {
+  text-decoration: line-through;
+  color: var(--color-danger);
+  word-break: break-word;
+}
+.audit-changes__after {
+  font-weight: 600;
+  color: var(--color-success);
+  word-break: break-word;
+}
+.audit-changes__arrow {
+  color: var(--color-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (max-width: 768px) {
+  .audit-changes__field { min-width: 70px; }
+}
+
+.audit-reason {
+  margin: 0;
+  font-style: italic;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+/* Action badges - colour codes the operation. Inherits the global .badge
+   shape (pill + uppercase). */
+.badge {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge--create  { background: var(--color-success-soft); color: var(--color-success); }
+.badge--update  { background: var(--color-primary-soft); color: var(--color-primary-deep); }
+.badge--delete  { background: var(--color-danger-soft); color: var(--color-danger); }
+.badge--close   { background: #EEF0F2; color: var(--color-text-muted); }
+.badge--reopen  { background: var(--color-success-soft); color: var(--color-success); }
+.badge--cascade { background: var(--color-warn-soft); color: var(--color-warn); }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

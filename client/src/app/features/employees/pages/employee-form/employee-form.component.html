@@ -1,0 +1,143 @@
+<app-page-header
+  [title]="isEditMode() ? 'Edit Employee' : 'New Employee'"
+  [subtitle]="isEditMode() ? 'Update the employee record.' : 'Add a new employee to the system.'">
+  <a routerLink="/employees" class="btn btn-ghost">Back to list</a>
+</app-page-header>
+
+@if (loadingOne$ | async) {
+  <div class="card row" style="justify-content:center;">
+    <app-loading-spinner label="Loading employee"></app-loading-spinner>
+    <span class="text-muted">Loading employee...</span>
+  </div>
+} @else {
+  <form class="card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate data-cy="employee-form">
+
+    <!-- Form-level error summary. Shows the API problem-details title when present. -->
+    @if ((error$ | async); as err) {
+      <div class="form-error-summary" role="alert" data-cy="form-error">
+        <strong>{{ err.title }}</strong>
+        @if (err.detail) { <div>{{ err.detail }}</div> }
+        @if (err.errors?.length) {
+          <ul class="mt-3" style="margin: 0; padding-left: 18px;">
+            @for (e of err.errors; track e.field + e.message) {
+              <li>{{ e.field }}: {{ e.message }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <div class="form-grid">
+      <div>
+        <label for="firstName">First name *</label>
+        <input id="firstName" type="text" formControlName="firstName"
+               autocomplete="given-name" maxlength="60" data-cy="firstName" />
+        <!--
+          Errors are listed in priority order: presence first, then content
+          quality. Only one message renders at a time (via @else if) so the
+          user isn't overwhelmed by a stack of partially-overlapping faults.
+        -->
+        @if (form.controls.firstName.touched && form.controls.firstName.errors; as errs) {
+          @if (errs['required']) {
+            <div class="field-error">First name is required.</div>
+          } @else if (errs['whitespaceOnly']) {
+            <div class="field-error">First name cannot be just spaces.</div>
+          } @else if (errs['minlength']) {
+            <div class="field-error">First name must be at least 2 characters.</div>
+          } @else if (errs['maxlength']) {
+            <div class="field-error">First name cannot exceed 60 characters.</div>
+          } @else if (errs['nameFormat']) {
+            <div class="field-error">First name can contain letters, spaces, hyphens and apostrophes only.</div>
+          }
+        }
+      </div>
+
+      <div>
+        <label for="lastName">Last name *</label>
+        <input id="lastName" type="text" formControlName="lastName"
+               autocomplete="family-name" maxlength="60" data-cy="lastName" />
+        @if (form.controls.lastName.touched && form.controls.lastName.errors; as errs) {
+          @if (errs['required']) {
+            <div class="field-error">Last name is required.</div>
+          } @else if (errs['whitespaceOnly']) {
+            <div class="field-error">Last name cannot be just spaces.</div>
+          } @else if (errs['minlength']) {
+            <div class="field-error">Last name must be at least 2 characters.</div>
+          } @else if (errs['maxlength']) {
+            <div class="field-error">Last name cannot exceed 60 characters.</div>
+          } @else if (errs['nameFormat']) {
+            <div class="field-error">Last name can contain letters, spaces, hyphens and apostrophes only.</div>
+          }
+        }
+      </div>
+
+      <div style="grid-column: span 2;">
+        <label for="email">
+          Email *
+          @if (form.controls.email.pending) {
+            <span class="text-muted" style="font-weight:400; margin-left:6px;">
+              checking availability...
+            </span>
+          }
+        </label>
+        <input id="email" type="email" formControlName="email"
+               autocomplete="email" maxlength="120" data-cy="email" />
+        @if (form.controls.email.touched && form.controls.email.errors; as errs) {
+          @if (errs['required']) {
+            <div class="field-error">Email is required.</div>
+          } @else if (errs['email']) {
+            <div class="field-error">Enter a valid email address (e.g. name&#64;company.com).</div>
+          } @else if (errs['maxlength']) {
+            <div class="field-error">Email cannot exceed 120 characters.</div>
+          } @else if (errs['emailTaken']) {
+            <div class="field-error">That email is already used by another employee.</div>
+          }
+        }
+      </div>
+
+      <div>
+        <label for="role">Role *</label>
+        <select id="role" formControlName="role" data-cy="role">
+          @for (r of roles; track r) { <option [value]="r">{{ r }}</option> }
+        </select>
+        @if (form.controls.role.touched && form.controls.role.errors?.['required']) {
+          <div class="field-error">Role is required.</div>
+        }
+      </div>
+
+      <div>
+        <label for="status">Status *</label>
+        <select id="status" formControlName="status" data-cy="status">
+          @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+        @if (form.controls.status.touched && form.controls.status.errors?.['required']) {
+          <div class="field-error">Status is required.</div>
+        }
+      </div>
+    </div>
+
+    <footer class="row spread mt-5">
+      <span class="text-muted">* required fields</span>
+      <div class="row">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" data-cy="cancel">Cancel</button>
+        <!--
+          Submit is intentionally enabled even when the form is invalid - clicking
+          marks all controls touched so the user sees every error at once. We
+          still disable it while saving / async validation is in flight to avoid
+          duplicate submissions.
+        -->
+        <button type="submit"
+                class="btn btn-primary"
+                [disabled]="form.pending || (saving$ | async)"
+                data-cy="submit">
+          @if (saving$ | async) {
+            <app-loading-spinner [size]="14" label="Saving"></app-loading-spinner>
+            Saving...
+          } @else {
+            {{ isEditMode() ? 'Save changes' : 'Create employee' }}
+          }
+        </button>
+      </div>
+    </footer>
+  </form>
+}

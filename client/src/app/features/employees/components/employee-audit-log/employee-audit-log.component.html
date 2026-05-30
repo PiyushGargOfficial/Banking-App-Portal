@@ -1,0 +1,100 @@
+<section class="card" data-cy="audit-log">
+  <header class="row spread">
+    <div>
+      <h2 style="margin:0;">Audit log</h2>
+      <p class="text-muted" style="margin:4px 0 0;">
+        Every action performed on this employee&apos;s profile and accounts.
+        Append-only - entries can never be edited or removed.
+      </p>
+    </div>
+    <div class="row">
+      @if (total() > 0) {
+        <span class="text-muted">{{ total() }} {{ total() === 1 ? 'entry' : 'entries' }}</span>
+      }
+      <button type="button" class="btn btn-ghost btn-sm"
+              (click)="refresh()"
+              [disabled]="loading()"
+              data-cy="audit-refresh">
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="mt-4">
+    @if (loading()) {
+      <div class="row" style="justify-content:center; padding: 24px;">
+        <app-loading-spinner label="Loading audit log"></app-loading-spinner>
+        <span class="text-muted">Loading audit log...</span>
+      </div>
+    } @else if (error()) {
+      <div class="audit-error" role="alert">{{ error() }}</div>
+    } @else if (entries().length === 0) {
+      <app-empty-state
+        icon="-"
+        title="No audit entries yet"
+        message="Changes made to this employee or their accounts will be logged here.">
+      </app-empty-state>
+    } @else {
+      <ol class="audit-list">
+        @for (entry of entries(); track entry.entryId) {
+          <li class="audit-entry" data-cy="audit-entry">
+            <div class="audit-entry__head">
+              <span [class]="badgeClass(entry.action)" data-cy="audit-action">
+                {{ actionLabel(entry.action) }}
+              </span>
+              <span class="audit-entry__resource">{{ entry.resource }}</span>
+              @if (entry.accountNumber) {
+                <code class="audit-entry__account">{{ entry.accountNumber | maskAccount }}</code>
+              }
+              <span class="audit-entry__when text-muted">
+                {{ entry.timestamp | date: 'medium' }}
+              </span>
+            </div>
+
+            <div class="audit-entry__body">
+              <!-- CREATE / DELETE: render the snapshot as key:value pairs. -->
+              @if (entry.snapshot) {
+                <dl class="audit-snapshot">
+                  @for (pair of snapshotEntries(entry.snapshot); track pair[0]) {
+                    <div class="audit-snapshot__pair">
+                      <dt>{{ pair[0] }}</dt>
+                      <dd>{{ formatValue(pair[1]) }}</dd>
+                    </div>
+                  }
+                </dl>
+              }
+
+              <!-- UPDATE: field-level diff. -->
+              @if (entry.changes && entry.changes.length > 0) {
+                <ul class="audit-changes">
+                  @for (change of entry.changes; track change.field) {
+                    <li>
+                      <span class="audit-changes__field">{{ change.field }}</span>
+                      <span class="audit-changes__before">{{ formatValue(change.before) }}</span>
+                      <span class="audit-changes__arrow" aria-label="changed to">-&gt;</span>
+                      <span class="audit-changes__after">{{ formatValue(change.after) }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+
+              <!-- CASCADE_CLOSE: show the reason. -->
+              @if (entry.reason) {
+                <p class="audit-reason">Reason: {{ entry.reason }}</p>
+              }
+            </div>
+
+            <footer class="audit-entry__foot">
+              <span>by <strong>{{ entry.actor }}</strong></span>
+              @if (entry.correlationId) {
+                <span class="audit-entry__cid" title="Correlation id">
+                  cid: <code>{{ entry.correlationId }}</code>
+                </span>
+              }
+            </footer>
+          </li>
+        }
+      </ol>
+    }
+  </div>
+</section>

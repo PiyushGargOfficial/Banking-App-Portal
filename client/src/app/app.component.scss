@@ -1,0 +1,223 @@
+/* App shell layout - TD-inspired sticky green header + clean main + tiny footer. */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Accessibility - keyboard users can jump straight to <main>. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  z-index: 2000;
+  font-weight: 700;
+  &:focus { left: 8px; top: 8px; }
+}
+
+/* ----- Header ---------------------------------------------------------------
+   TD's retail web uses a tall green bar with the brand mark, primary nav and
+   account/utility links. We replicate the structure at a smaller, admin scale.
+   --------------------------------------------------------------------------- */
+.app-header {
+  background: var(--color-primary);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+  border-bottom: 3px solid var(--color-primary-deep);
+}
+
+.app-header__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  height: var(--header-h);
+  padding: 0 var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+/* Tablet portrait: tighten gaps, drop the trailing utility column. */
+@media (max-width: 1024px) {
+  .app-header__inner { gap: var(--space-4); padding: 0 var(--space-4); }
+}
+
+/* Brand block ------------------------------------------------------------- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+  &:hover { text-decoration: none; }
+  &:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* Brand mark is a CSS-only square. We don't reproduce TD's actual logo
+   asset - just echo the silhouette (white square, dark letters, slightly
+   raised). A real product would swap this for the licensed PNG/SVG. */
+.brand__mark {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.brand__mark-letters {
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand__name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brand__sub {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Primary nav ------------------------------------------------------------ */
+.nav {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.nav-link {
+  position: relative;
+  padding: 8px 14px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    text-decoration: none;
+  }
+
+  /* Active state echoes TD's underline pattern on retail nav. */
+  &.active {
+    background: rgba(255, 255, 255, 0.16);
+    &::after {
+      content: '';
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: -22px;
+      height: 3px;
+      background: var(--color-accent);
+      border-radius: 3px 3px 0 0;
+    }
+  }
+}
+
+/* Utility / user block on the right -------------------------------------- */
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.header-meta__user {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Main content focus reset ----------------------------------------------- */
+main { flex: 1; }
+main:focus { outline: none; }
+
+/* ----- Footer -------------------------------------------------------------- */
+.app-footer {
+  background: white;
+  border-top: 1px solid var(--color-border-soft);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: auto;
+}
+
+.app-footer__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ----- Responsive --------------------------------------------------------- */
+/* Tablet portrait - hide the right-hand utility chip, it's just decorative. */
+@media (max-width: 768px) {
+  .header-meta { display: none; }
+  .brand__name { font-size: 15px; }
+  .nav-link { padding: 7px 12px; font-size: 13px; }
+}
+
+/* Phone landscape and below - collapse the brand to just the mark + name. */
+@media (max-width: 640px) {
+  .app-header__inner { padding: 0 var(--space-3); gap: var(--space-3); }
+  .brand__sub { display: none; }
+  .nav { margin-left: auto; }
+  .nav-link { padding: 6px 10px; font-size: 13px; }
+}
+
+/* Phone portrait (iPhone / Android, ~360-440px): trim the brand mark and
+   tighten everything so the header fits cleanly on the narrowest 2026
+   handsets without overflow. The active-nav underline accent below
+   the bar is also pulled in so it doesn't collide with the next section. */
+@media (max-width: 480px) {
+  :root { --header-h: 52px; }
+  .app-header { border-bottom-width: 2px; }
+  .app-header__inner { padding: 0 var(--space-2); gap: var(--space-2); }
+  .brand { gap: 8px; }
+  .brand__mark { width: 32px; height: 32px; }
+  .brand__mark-letters { font-size: 15px; }
+  .brand__name { font-size: 14px; letter-spacing: 0; }
+  .nav-link { padding: 5px 8px; font-size: 12px; }
+  .nav-link.active::after { bottom: -14px; height: 2px; left: 8px; right: 8px; }
+  .app-footer__inner { padding: var(--space-2) var(--space-3); font-size: 11px; }
+}
+
+/* ----- Footer responsiveness ---------------------------------------------- */
+@media (max-width: 1024px) {
+  .app-footer__inner { padding: var(--space-3) var(--space-4); }
+}

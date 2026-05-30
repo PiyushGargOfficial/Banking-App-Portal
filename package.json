@@ -1,0 +1,25 @@
+{
+  "name": "banking-admin-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Banking Admin Portal - Senior Angular Developer take-home assignment",
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "start": "concurrently -k -n SERVER,CLIENT -c blue,green \"npm:start:server\" \"npm:start:client\"",
+    "start:server": "npm --prefix server start",
+    "start:client": "npm --prefix client start",
+    "test": "npm --prefix client test -- --watch=false --browsers=ChromeHeadless",
+    "test:server": "npm --prefix server test",
+    "test:server:watch": "npm --prefix server run test:watch",
+    "test:server:coverage": "npm --prefix server run test:coverage",
+    "test:all": "npm run test:server && npm test",
+    "e2e": "npm --prefix client run e2e"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  }
+}

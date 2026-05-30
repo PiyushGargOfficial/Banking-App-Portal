@@ -1,0 +1,113 @@
+<section class="card" data-cy="account-list">
+  <header class="row spread">
+    <div>
+      <h2 style="margin:0;">Accounts</h2>
+      <p class="text-muted" style="margin:4px 0 0;">Banking accounts linked to this employee.</p>
+    </div>
+    @if (!showForm()) {
+      <button type="button" class="btn btn-primary btn-sm" (click)="startAdd()" data-cy="add-account">+ Add account</button>
+    }
+  </header>
+
+  <div class="mt-4">
+    <app-account-summary
+      [subtotals]="subtotals()"
+      [total]="total()">
+    </app-account-summary>
+  </div>
+
+  @if (showForm()) {
+    <div class="mt-4">
+      <!-- formHeading() is a computed() - cheaper than recomputing the ternary
+           in the template every change-detection cycle. -->
+      <h3>{{ formHeading() }}</h3>
+      <app-account-form
+        [existing]="editing()"
+        [saving$]="saving$"
+        (create)="onCreate($event)"
+        (update)="onUpdate($event)"
+        (cancel)="cancelForm()">
+      </app-account-form>
+    </div>
+  }
+
+  <div class="mt-4">
+    @if (loading()) {
+      <div class="row" style="justify-content:center; padding: 24px;">
+        <app-loading-spinner label="Loading accounts"></app-loading-spinner>
+        <span class="text-muted">Loading accounts...</span>
+      </div>
+    } @else if (items().length === 0) {
+      <!--
+        Signals collapse the previous nested @if/@else if/as pattern into
+        this flat chain. No async pipes, no `as accounts` alias needed.
+      -->
+      <app-empty-state
+        icon="$"
+        title="No accounts yet"
+        message="Add a banking account for this employee to get started.">
+      </app-empty-state>
+    } @else {
+      <div class="table-scroll">
+        <table class="table" data-cy="account-table">
+          <thead>
+            <tr>
+              <th>Account number</th>
+              <th>Type</th>
+              <th>Currency</th>
+              <th class="text-right">Balance</th>
+              <th>Status</th>
+              <th class="hidden-portrait">Updated</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of items(); track a.accountId) {
+              <tr data-cy="account-row">
+                <td><code>{{ a.accountNumber | maskAccount }}</code></td>
+                <td>{{ a.accountType }}</td>
+                <td>{{ a.currency }}</td>
+                <td class="text-right">{{ a.balance | money: a.currency }}</td>
+                <td>
+                  <span class="badge" [class.open]="a.status === 'OPEN'" [class.closed]="a.status === 'CLOSED'">
+                    {{ a.status }}
+                  </span>
+                </td>
+                <td class="hidden-portrait">{{ a.updatedAt ? (a.updatedAt | date: 'short') : '-' }}</td>
+                <td class="text-right">
+                  <!--
+                    Action buttons swap based on account status:
+                    - OPEN  -> Edit + Close (close routes through a confirm dialog)
+                    - CLOSED -> Reopen (single click; non-destructive, so no confirm)
+                  -->
+                  @if (a.status === 'OPEN') {
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            (click)="startEdit(a)"
+                            data-cy="edit-account">Edit</button>
+                    <button type="button" class="btn btn-ghost btn-sm"
+                            (click)="requestClose(a)"
+                            data-cy="close-account">Close</button>
+                  } @else {
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            (click)="reopen(a)"
+                            data-cy="reopen-account">Reopen</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>
+
+<app-confirm-dialog
+  [open]="!!pendingClose()"
+  title="Close account?"
+  [message]="(pendingClose() ? 'This will soft-close account ending in ' + (pendingClose()!.accountNumber | maskAccount) + '. The record stays for audit, but the account will be marked CLOSED.' : '')"
+  confirmLabel="Close account"
+  cancelLabel="Keep open"
+  [destructive]="true"
+  (confirmed)="confirmClose()"
+  (cancelled)="cancelClose()"></app-confirm-dialog>
