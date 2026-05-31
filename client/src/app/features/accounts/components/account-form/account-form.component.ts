@@ -61,100 +61,127 @@ const MAX_BALANCE = 9_999_999_999.99;
       (ngSubmit)="onSubmit()"
       novalidate
       data-cy="account-form"
+      [attr.aria-label]="existing ? 'Edit account' : 'New account'"
     >
-      <div class="form-grid">
-        <div>
-          <label for="acc-number">Account number *</label>
-          <input
-            id="acc-number"
-            type="text"
-            inputmode="numeric"
-            formControlName="accountNumber"
-            [readonly]="!!existing"
-            maxlength="19"
-            data-cy="acc-number"
-          />
-          @if (form.controls.accountNumber.touched && form.controls.accountNumber.errors; as errs) {
-            @if (errs['required']) {
-              <div class="field-error">Account number is required.</div>
-            } @else if (errs['pattern']) {
-              <div class="field-error">
-                Account number must be 8-19 digits with no spaces or symbols.
-              </div>
-            }
-          }
-        </div>
-
-        <div>
-          <label for="acc-type">Type *</label>
-          <select id="acc-type" formControlName="accountType" data-cy="acc-type">
-            @for (t of types; track t) {
-              <option [value]="t">{{ t }}</option>
-            }
-          </select>
-          @if (
-            form.controls.accountType.touched && form.controls.accountType.errors?.['required']
-          ) {
-            <div class="field-error">Account type is required.</div>
-          }
-        </div>
-
-        <div>
-          <label for="acc-currency">Currency *</label>
-          <select id="acc-currency" formControlName="currency" data-cy="acc-currency">
-            @for (c of currencies; track c) {
-              <option [value]="c">{{ c }}</option>
-            }
-          </select>
-          @if (form.controls.currency.touched && form.controls.currency.errors?.['required']) {
-            <div class="field-error">Currency is required.</div>
-          }
-        </div>
-
-        <div>
-          <label for="acc-balance">Balance *</label>
-          <input
-            id="acc-balance"
-            type="number"
-            step="0.01"
-            min="0"
-            [max]="MAX_BALANCE"
-            formControlName="balance"
-            data-cy="acc-balance"
-          />
-          @if (form.controls.balance.touched && form.controls.balance.errors; as errs) {
-            @if (errs['required']) {
-              <div class="field-error">Balance is required.</div>
-            } @else if (errs['min']) {
-              <div class="field-error">Balance cannot be negative.</div>
-            } @else if (errs['max']) {
-              <div class="field-error">
-                Balance cannot exceed {{ MAX_BALANCE | number: '1.2-2' }}.
-              </div>
-            } @else if (errs['pattern']) {
-              <div class="field-error">
-                Balance must be a plain number (no commas, letters or scientific notation).
-              </div>
-            } @else if (errs['maxDecimalPlaces']) {
-              <div class="field-error">Balance can have at most 2 decimal places.</div>
-            }
-          }
-        </div>
-
-        @if (existing) {
+      <fieldset class="form-fieldset">
+        <legend>{{ existing ? 'Account details (edit)' : 'New account details' }}</legend>
+        <div class="form-grid">
           <div>
-            <label for="acc-status">Status *</label>
-            <select id="acc-status" formControlName="status" data-cy="acc-status">
-              @for (s of statuses; track s) {
-                <option [value]="s">{{ s }}</option>
-              }
-            </select>
-            @if (form.controls.status.touched && form.controls.status.errors?.['required']) {
-              <div class="field-error">Status is required.</div>
+            <label for="acc-number">Account number *</label>
+            <input
+              id="acc-number"
+              type="text"
+              inputmode="numeric"
+              formControlName="accountNumber"
+              [readonly]="!!existing"
+              maxlength="19"
+              [attr.aria-invalid]="form.controls.accountNumber.touched && form.controls.accountNumber.invalid ? 'true' : null"
+              [attr.aria-describedby]="form.controls.accountNumber.touched && form.controls.accountNumber.errors ? 'acc-number-error' : null"
+              data-cy="acc-number"
+            />
+            @if (
+              form.controls.accountNumber.touched && form.controls.accountNumber.errors;
+              as errs
+            ) {
+              <div id="acc-number-error" class="field-error">
+                @if (errs['required']) {
+                  Account number is required.
+                } @else if (errs['pattern']) {
+                  Account number must be 8-19 digits with no spaces or symbols.
+                }
+              </div>
             }
           </div>
-        }
-      </div>
+
+          <div>
+            <label for="acc-type">Type *</label>
+            <select
+              id="acc-type"
+              formControlName="accountType"
+              [attr.aria-invalid]="form.controls.accountType.touched && form.controls.accountType.invalid ? 'true' : null"
+              [attr.aria-describedby]="form.controls.accountType.touched && form.controls.accountType.errors ? 'acc-type-error' : null"
+              data-cy="acc-type"
+            >
+              @for (t of types; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+            @if (
+              form.controls.accountType.touched && form.controls.accountType.errors?.['required']
+            ) {
+              <div id="acc-type-error" class="field-error">Account type is required.</div>
+            }
+          </div>
+
+          <div>
+            <label for="acc-currency">Currency *</label>
+            <select
+              id="acc-currency"
+              formControlName="currency"
+              [attr.aria-invalid]="form.controls.currency.touched && form.controls.currency.invalid ? 'true' : null"
+              [attr.aria-describedby]="form.controls.currency.touched && form.controls.currency.errors ? 'acc-currency-error' : null"
+              data-cy="acc-currency"
+            >
+              @for (c of currencies; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+            @if (form.controls.currency.touched && form.controls.currency.errors?.['required']) {
+              <div id="acc-currency-error" class="field-error">Currency is required.</div>
+            }
+          </div>
+
+          <div>
+            <label for="acc-balance">Balance *</label>
+            <input
+              id="acc-balance"
+              type="number"
+              step="0.01"
+              min="0"
+              [max]="MAX_BALANCE"
+              formControlName="balance"
+              [attr.aria-invalid]="form.controls.balance.touched && form.controls.balance.invalid ? 'true' : null"
+              [attr.aria-describedby]="form.controls.balance.touched && form.controls.balance.errors ? 'acc-balance-error' : null"
+              data-cy="acc-balance"
+            />
+            @if (form.controls.balance.touched && form.controls.balance.errors; as errs) {
+              <div id="acc-balance-error" class="field-error">
+                @if (errs['required']) {
+                  Balance is required.
+                } @else if (errs['min']) {
+                  Balance cannot be negative.
+                } @else if (errs['max']) {
+                  Balance cannot exceed {{ MAX_BALANCE | number: '1.2-2' }}.
+                } @else if (errs['pattern']) {
+                  Balance must be a plain number (no commas, letters or scientific notation).
+                } @else if (errs['maxDecimalPlaces']) {
+                  Balance can have at most 2 decimal places.
+                }
+              </div>
+            }
+          </div>
+
+          @if (existing) {
+            <div>
+              <label for="acc-status">Status *</label>
+              <select
+                id="acc-status"
+                formControlName="status"
+                [attr.aria-invalid]="form.controls.status.touched && form.controls.status.invalid ? 'true' : null"
+                [attr.aria-describedby]="form.controls.status.touched && form.controls.status.errors ? 'acc-status-error' : null"
+                data-cy="acc-status"
+              >
+                @for (s of statuses; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+              @if (form.controls.status.touched && form.controls.status.errors?.['required']) {
+                <div id="acc-status-error" class="field-error">Status is required.</div>
+              }
+            </div>
+          }
+        </div>
+      </fieldset>
 
       <div class="row spread mt-4">
         <span class="text-muted">* required</span>

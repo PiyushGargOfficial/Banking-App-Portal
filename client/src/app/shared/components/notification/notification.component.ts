@@ -1,34 +1,85 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NotificationService } from '@core/services/notification.service';
 
 /**
  * Global toast renderer. Subscribed to the NotificationService signal and
  * mounted once near the app root so any component / effect can push a toast.
+ *
+ * Accessibility - the toast surface is split into two live regions by
+ * severity:
+ *
+ *   - Errors (role="alert" + aria-live="assertive"): the screen reader
+ *     interrupts whatever it's saying and announces the error immediately.
+ *     This is the right call for "your save failed" or "the email is taken"
+ *     - the user genuinely needs to know NOW.
+ *
+ *   - Success / info / warning (role="status" + aria-live="polite"): the
+ *     screen reader finishes its current sentence then announces the toast.
+ *     Right for "Employee saved" or "Account closed" - the user wants the
+ *     confirmation but it's not urgent.
+ *
+ * Mixing both severities into a single polite region would mean errors
+ * queue behind whatever was being narrated, sometimes for several seconds.
  */
 @Component({
   selector: 'app-notification',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="toasts" aria-live="polite" aria-atomic="true">
-      @for (n of notifications(); track n.id) {
-        <div class="toast" [class]="'toast--' + n.kind" data-cy="toast">
-          <span class="toast__msg">{{ n.message }}</span>
-          <button
-            type="button"
-            class="toast__close"
-            aria-label="Dismiss notification"
-            (click)="dismiss(n.id)"
-          >
-            x
-          </button>
-        </div>
-      }
+    <!--
+      Single fixed-position host so the two live regions inside stack
+      normally instead of overlapping. The aria-live regions sit one above
+      the other as plain block children.
+    -->
+    <div class="toast-host">
+      <!--
+        Assertive region - only error toasts land here so screen readers
+        interrupt and announce them immediately.
+      -->
+      <div class="toast-region" role="alert" aria-live="assertive" aria-atomic="true">
+        @for (n of errorToasts(); track n.id) {
+          <div class="toast toast--error" data-cy="toast">
+            <span class="toast__msg">{{ n.message }}</span>
+            <button
+              type="button"
+              class="toast__close"
+              aria-label="Dismiss notification"
+              (click)="dismiss(n.id)"
+            >
+              x
+            </button>
+          </div>
+        }
+      </div>
+
+      <!--
+        Polite region - success / info / warning toasts. The visual layout is
+        identical to the assertive region above; the split is purely about
+        WAI-ARIA semantics.
+      -->
+      <div class="toast-region" role="status" aria-live="polite" aria-atomic="true">
+        @for (n of politeToasts(); track n.id) {
+          <div class="toast" [class]="'toast--' + n.kind" data-cy="toast">
+            <span class="toast__msg">{{ n.message }}</span>
+            <button
+              type="button"
+              class="toast__close"
+              aria-label="Dismiss notification"
+              (click)="dismiss(n.id)"
+            >
+              x
+            </button>
+          </div>
+        }
+      </div>
     </div>
   `,
   styles: [
     `
-      .toasts {
+      /* Single fixed-position container that holds both aria-live regions
+         stacked vertically. The regions themselves are plain block flow so
+         they don't fight each other for the same position. */
+      .toast-host {
         position: fixed;
         top: 16px;
         right: 16px;
@@ -37,11 +88,25 @@ import { NotificationService } from '@core/services/notification.service';
         flex-direction: column;
         gap: 8px;
         max-width: 360px;
+        pointer-events: none; /* let clicks through gaps */
+      }
+      .toast-region {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      /* Empty live regions stay in the DOM (assistive tech expects them to
+         persist) but contribute no visual gap. */
+      .toast-region:empty {
+        display: none;
+      }
+      .toast-region > .toast {
+        pointer-events: auto;
       }
       /* Phone portrait: pin to both edges so a 360px toast doesn't get
        clipped on a 375px iPhone SE. */
       @media (max-width: 480px) {
-        .toasts {
+        .toast-host {
           top: 12px;
           right: 12px;
           left: 12px;
@@ -100,6 +165,20 @@ import { NotificationService } from '@core/services/notification.service';
 export class NotificationComponent {
   private readonly notifier = inject(NotificationService);
   protected readonly notifications = this.notifier.notifications;
+
+  /**
+   * Errors only - go into the assertive aria-live region so the screen
+   * reader interrupts the user immediately. computed() memoises the filter
+   * so the template can read this multiple times per render without cost.
+   */
+  protected readonly errorToasts = computed(() =>
+    this.notifications().filter((n) => n.kind === 'error')
+  );
+
+  /** Success / info / warning - polite aria-live region. */
+  protected readonly politeToasts = computed(() =>
+    this.notifications().filter((n) => n.kind !== 'error')
+  );
 
   dismiss(id: number): void {
     this.notifier.dismiss(id);

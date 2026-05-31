@@ -298,3 +298,49 @@ describe('AuditService.listForEmployee', () => {
     expect(total).toBe(0);
   });
 });
+
+describe('AuditService.listForEmployee - MAX_PAGE_SIZE clamp', () => {
+  // Read the clamp from config so the test stays correct if the value
+  // is ever tuned. Importing here (not at top of file) keeps the rest of
+  // the suite unaware of the limit.
+  const { MAX_PAGE_SIZE } = require('../../config');
+
+  beforeEach(() => {
+    // Seed (MAX_PAGE_SIZE + 25) entries so we have enough to prove the
+    // clamp is doing something meaningful.
+    for (let i = 0; i < MAX_PAGE_SIZE + 25; i++) {
+      AuditService.recordEmployeeCreated(
+        { ...baseEmployee, employeeId: 'emp-clamp' },
+        { actor: `tester-${i}` }
+      );
+    }
+  });
+
+  it('returns at most MAX_PAGE_SIZE items when size=999999 is requested', () => {
+    const { items } = AuditService.listForEmployee('emp-clamp', { size: 999999 });
+
+    expect(items.length).toBeLessThanOrEqual(MAX_PAGE_SIZE);
+    expect(items).toHaveLength(MAX_PAGE_SIZE);
+  });
+
+  it('reports the clamped size in the response so the caller sees the cap', () => {
+    const { size } = AuditService.listForEmployee('emp-clamp', { size: 999999 });
+
+    expect(size).toBe(MAX_PAGE_SIZE);
+  });
+
+  it('still honours the requested size when it sits under the clamp', () => {
+    const { items, size } = AuditService.listForEmployee('emp-clamp', { size: 50 });
+
+    expect(items).toHaveLength(50);
+    expect(size).toBe(50);
+  });
+
+  it('reports the full total separately so callers can paginate further', () => {
+    // The clamp limits one page, not the population. `total` must still
+    // reflect every matching entry so the client knows pagination remains.
+    const { total } = AuditService.listForEmployee('emp-clamp', { size: 999999 });
+
+    expect(total).toBe(MAX_PAGE_SIZE + 25);
+  });
+});

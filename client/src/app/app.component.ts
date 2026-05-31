@@ -33,7 +33,21 @@ import { NotificationComponent } from '@shared/components/notification/notificat
         </a>
 
         <nav aria-label="Primary navigation" class="nav">
-          <a routerLink="/employees" routerLinkActive="active" class="nav-link">Employees</a>
+          <!--
+            aria-current="page" announces "current page" to screen readers when
+            this link points at the current route. The visual "active" class
+            already conveys that to sighted users; this gives the same signal
+            to assistive tech. Bound off RouterLinkActive's #rla template ref
+            so it stays in sync with the visual state automatically.
+          -->
+          <a
+            routerLink="/employees"
+            routerLinkActive="active"
+            #rla="routerLinkActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            class="nav-link"
+            >Employees</a
+          >
         </nav>
 
         <div class="header-meta" aria-hidden="true">

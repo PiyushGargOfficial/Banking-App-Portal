@@ -153,4 +153,21 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     if (q.sortBy !== column) return '';
     return q.sortDir === 'asc' ? ' v' : ' ^';
   }
+
+  /**
+   * WAI-ARIA `aria-sort` value for a column header. Returns the canonical
+   * tokens screen readers expect:
+   *   - 'ascending'  -> column currently sorted A->Z
+   *   - 'descending' -> column currently sorted Z->A
+   *   - 'none'       -> column is sortable but isn't the active sort
+   *
+   * Bound on the <th> via [attr.aria-sort]. Without this, a screen-reader
+   * user has no way to know which column is sorted or in which direction
+   * (the "v" / "^" arrows are purely visual).
+   */
+  ariaSort(column: EmployeeQuery['sortBy']): 'ascending' | 'descending' | 'none' {
+    const q = this.query();
+    if (q.sortBy !== column) return 'none';
+    return q.sortDir === 'asc' ? 'ascending' : 'descending';
+  }
 }

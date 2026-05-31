@@ -13,6 +13,7 @@
  * switch from in-memory to a real DB without touching the rules.
  */
 const { v4: uuid } = require('uuid');
+const { MAX_PAGE_SIZE } = require('../config');
 const AuditRepository = require('../repositories/audit.repository');
 
 const nowIso = () => new Date().toISOString();
@@ -194,7 +195,11 @@ const AuditService = {
   listForEmployee(employeeId, { page = 1, size = 50 } = {}) {
     const all = AuditRepository.findByEmployeeId(employeeId);
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const sizeNum = Math.max(1, parseInt(size, 10) || 50);
+    // Clamp to MAX_PAGE_SIZE so a `?size=999999` request can't force the
+    // server to slice + serialise an unbounded chunk of the audit log.
+    // Audit trails grow forever (append-only) so this matters more here
+    // than on the employee list.
+    const sizeNum = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(size, 10) || 50));
     const start = (pageNum - 1) * sizeNum;
     return {
       items: all.slice(start, start + sizeNum),

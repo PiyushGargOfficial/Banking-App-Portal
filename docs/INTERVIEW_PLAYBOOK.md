@@ -1,0 +1,578 @@
+# Interview Playbook — presenting the Banking Admin Portal at senior level
+
+**The full pre-interview prep, applied to this specific project.**
+
+This isn't a generic guide. Every example below is tied to a real decision, file, or trade-off in the codebase you can actually open and point at. Where the advice is "have a quantified outcome ready", you'll see the actual numbers for this project. Where it's "have an architecture diagram", you'll see the diagram drawn out.
+
+Use this with [INTERVIEW_REFLECTION.md](./INTERVIEW_REFLECTION.md) — that doc has the five-question exercise drilled down to the speakable version; this doc has the full ten-step preparation.
+
+---
+
+## Table of contents
+
+1. [Meta — what this whole document is for](#1-meta--what-this-whole-document-is-for)
+2. [Why this project is the right one to showcase](#2-why-this-project-is-the-right-one-to-showcase)
+3. [The 2-minute pitch (rehearsed)](#3-the-2-minute-pitch-rehearsed)
+4. [Architecture you can draw on the fly](#4-architecture-you-can-draw-on-the-fly)
+5. [Decision tree — why this over the alternatives](#5-decision-tree--why-this-over-the-alternatives)
+6. [Quantified impact — the honest numbers](#6-quantified-impact--the-honest-numbers)
+7. [The messy parts (what didn't work)](#7-the-messy-parts-what-didnt-work)
+8. [Ownership beyond code](#8-ownership-beyond-code)
+9. [Demo readiness](#9-demo-readiness)
+10. [Tailoring the depth by interviewer](#10-tailoring-the-depth-by-interviewer)
+11. [Curiosity flip — the questions you ask back](#11-curiosity-flip--the-questions-you-ask-back)
+12. [Anti-patterns to avoid on this project specifically](#12-anti-patterns-to-avoid-on-this-project-specifically)
+13. [The day-before / morning-of / during-the-call checklist](#13-the-day-before--morning-of--during-the-call-checklist)
+
+---
+
+## 1. Meta — what this whole document is for
+
+Senior interviews aren't tests of what you built. They're tests of **how you think about what you built**. A junior can list the features ("it has CRUD, NgRx, Cypress…"). A senior can stand at a whiteboard and explain *why* — what they considered, what they rejected, what they'd reverse, what they'd ship today if a regulator landed at the door.
+
+The plan below walks the project through that lens. Each section gives you:
+
+- A specific example **from this codebase** of the principle at play
+- The actual file or decision you can point at
+- The phrasing to use when describing it out loud
+
+Read it once a week before the interview. Re-read just the [pitch](#3-the-2-minute-pitch-rehearsed) and the [checklist](#13-the-day-before--morning-of--during-the-call-checklist) the morning of.
+
+---
+
+## 2. Why this project is the right one to showcase
+
+This is a take-home, not a billion-dollar production system. That sounds like a weakness — it isn't, as long as you frame it correctly.
+
+### What makes it credible to lead with
+
+| The senior interview wants to see | This project demonstrates |
+|---|---|
+| Real trade-offs you made | NgRx vs Signals split, clamp vs reject for `MAX_PAGE_SIZE`, MVC vs single-file Express, soft-delete vs hard-delete cascade |
+| Problems you solved on your own | Output-alias compile error, parser-error around pipes in actions, focus-management gap in the confirm dialog, validation drift risk between client and server |
+| Outcomes you can point to | Spec compliance, test counts, viewport tiers, WCAG level (full numbers in [§6](#6-quantified-impact--the-honest-numbers)) |
+| Architectural ownership | You picked the structure top to bottom — folder layout, layering, repository pattern, audit log shape, testing strategy. Nothing is "the team's convention I followed" |
+
+### How to frame the take-home context up front
+
+> "It's a take-home for the role, but I treated it as a real product — full layering on the backend, real test coverage on the highest-risk code, a documented audit log, and an accessibility pass to WCAG 2.1 AA. I'd be embarrassed to ship the version someone gets by speedrunning the spec."
+
+That sentence transforms "small project" into "deliberate scoping". You've reframed the constraint as a design choice.
+
+### What you should *not* claim
+
+- Don't say "it's production-ready" — there's no auth, the backend is in-memory, there's no CI pipeline. Saying it's production-ready when these are missing erodes the rest of your credibility. Say "production-shaped" instead.
+- Don't say "I built every line solo" as a brag — say it as context. The senior framing is "no code review safety net, which is why I wrote my own senior-dev review of my work afterwards and shipped the gaps I found in subsequent commits."
+
+---
+
+## 3. The 2-minute pitch (rehearsed)
+
+The opening 90 seconds set the tone for everything that follows. Memorise the *shape* of this pitch, not the wording. Adapt to who's asking.
+
+### The pitch, in full
+
+> **Context.** It's a take-home for a Senior Angular Developer role at a Canadian bank — an internal "Banking Admin Portal" that lets a back-office admin manage employees and their linked banking accounts.
+>
+> **Problem.** The brief was generic: CRUD on both domains, all five HTTP verbs, NgRx, reactive forms, tests. The interesting question was treating it as a real product — what would the codebase look like if this was actually going behind SSO at a bank tomorrow?
+>
+> **Role.** Sole developer. Frontend, backend mock, tests, documentation, accessibility, responsive design, everything from scaffolding through ongoing refactors.
+>
+> **Three key decisions.** First, I split the backend into a strict MVC + repository + service stack rather than the typical single-file Express server — real banking back-ends have business rules that need to be testable in isolation. Second, I layered Angular Signals on top of NgRx rather than replacing it: NgRx stays the single source of truth, Signals appear at three specific seams — `toSignal()` bridging facade observables, `signal()` for component-local UI state, and `effect()` for state-driven DOM side effects. Third, I built an append-only audit log per employee with field-level diffs — banks audit everything, so it felt like the obvious extension.
+>
+> **Impact.** Every spec requirement plus all three listed bonus items, Jest backend tests covering the two highest-risk service files, four Cypress end-to-end flows, responsive across four viewport tiers from 360-px phones to 4K, and WCAG 2.1 AA on every interactive surface.
+>
+> **What I'd change.** I'd consolidate the validation rules into a shared package — the name regex, balance caps, and account-number pattern are duplicated across client TypeScript and server JavaScript today, and a one-sided change would mean silent contract drift between what the UI accepts and what the API rejects.
+
+That's roughly 100 seconds spoken at a normal pace. Time yourself.
+
+### Why this pitch works
+
+Six moves in 100 seconds:
+
+| Move | What it signals |
+|---|---|
+| Acknowledge it's a take-home **first** | Honest, sets expectations |
+| Reframe the brief as a design question | "I treated it as a real product" — senior posture |
+| Single-developer **without** bragging | Context, not chest-thumping |
+| Three decisions, each with the trade-off named | Architectural ownership |
+| Concrete impact list | Quantified outcomes |
+| Self-critique unprompted | Reflection — the strongest senior signal |
+
+### The three angles you can take from here
+
+Depending on who's asking, you can pivot from the pitch into:
+
+- **Architecture** → walk through the [layering diagram](#4-architecture-you-can-draw-on-the-fly)
+- **Decisions** → pick a single one and go deep ([§5](#5-decision-tree--why-this-over-the-alternatives))
+- **What's missing** → discuss the auth gap, validation drift, untested layers ([§7](#7-the-messy-parts-what-didnt-work))
+
+Have all three loaded.
+
+---
+
+## 4. Architecture you can draw on the fly
+
+This is where most candidates fall apart — asked "draw the system", they freeze. Practice this until you can sketch it on the back of a napkin in under 90 seconds.
+
+### The diagram
+
+```
+                                Browser
+                                   │
+                                   ▼
+   ┌────────────────────────────────────────────────────────────┐
+   │  Angular 17 Standalone App  (dev: 4200)                    │
+   │                                                            │
+   │     Component   ─────────────────────────┐                 │
+   │     templates                            │                 │
+   │     ▲                                    ▼                 │
+   │     │  signals (toSignal,         Facade (interface)       │
+   │     │  signal, computed,          EmployeeFacade,          │
+   │     │  effect)                    AccountFacade            │
+   │     │                                    │                 │
+   │     │                                    ▼                 │
+   │     └────────────────────────── NgRx feature stores        │
+   │                                 Actions / Reducer          │
+   │                                 Selectors / Effects        │
+   │                                 (per-feature facades)      │
+   │                                          │                 │
+   │                                          ▼                 │
+   │                                  HTTP Interceptors         │
+   │                                  correlation-id            │
+   │                                  error normalisation       │
+   └──────────────────────────────────────────┬─────────────────┘
+                                              │ proxy /api/*
+                                              ▼
+   ┌────────────────────────────────────────────────────────────┐
+   │  Express mock API  (dev: 3000)                             │
+   │                                                            │
+   │     Middleware  ─►  Routes  ─►  Controllers                │
+   │     correlation-id              (HTTP shape only)          │
+   │     morgan logger                       │                  │
+   │     error handler                       ▼                  │
+   │                                  Validators               │
+   │                                  (problem-details errors) │
+   │                                         │                  │
+   │                                         ▼                  │
+   │                                  Services                 │
+   │                                  (business rules,         │
+   │                                   audit recording,        │
+   │                                   list query)             │
+   │                                         │                  │
+   │                                         ▼                  │
+   │                                  Repositories             │
+   │                                  (pure CRUD)              │
+   │                                         │                  │
+   │                                         ▼                  │
+   │                                  In-memory store          │
+   │                                  employees / accounts /   │
+   │                                  auditLog                 │
+   └────────────────────────────────────────────────────────────┘
+```
+
+### What to say while you draw it
+
+Five sentences, one per layer:
+
+1. *"Angular standalone components consume the store via per-feature facades, which expose Observables. Signals bridge those Observables to templates at the leaf — NgRx remains the source of truth."*
+2. *"Two HTTP interceptors run before any request leaves the browser: one attaches a correlation id, the other normalises errors into our problem-details shape."*
+3. *"The dev server proxies `/api/*` to the Express mock on 3000 — no CORS dance in development."*
+4. *"Express follows a strict layered MVC: routes wire URLs to controllers, controllers do HTTP plumbing only, services own business rules and audit recording, repositories are pure CRUD against the in-memory store."*
+5. *"Every layer above the store is testable in isolation. The store itself is the only mutation site."*
+
+You're now five sentences into the architecture answer. Stop. Wait for the interviewer to ask which layer they want to dig into.
+
+### The "10x scale" sketch — the follow-up answer
+
+When the interviewer asks "how would you scale this 10x?", reach for:
+
+| Bottleneck today | 10x answer |
+|---|---|
+| In-memory store | Postgres with indexes on `email`, `(employeeId, accountId)`, `(employeeId, timestamp DESC)` for the audit-log read pattern |
+| Audit log grows unbounded | Already append-only, so it slots straight into an event-sourcing model. Move the read side to a materialised view in Redis for the per-employee list query |
+| Single Express process | Horizontal scale behind a load balancer — there's no in-process state once the store moves to Postgres |
+| Full employee list re-rendering on every filter change | Server-side pagination already in place (with the `MAX_PAGE_SIZE` clamp), so the client always gets a bounded payload. The CDN can cache `GET /api/employees` with the right Vary headers |
+| No tracing | The X-Correlation-Id header is already there — pipe it into OpenTelemetry and you have request-level traceability with zero application changes |
+| Bundle size on first load | Already lazy-load the employees feature route; the audit-log component is route-anchored so it ships with the detail page only |
+
+The point isn't to memorise every line of the table. The point is to be able to **name two-or-three of these unprompted** when asked.
+
+---
+
+## 5. Decision tree — why this over the alternatives
+
+For every architectural choice you made, be ready to answer "why this over the alternatives, specifically?". This is the highest-density senior signal in any project interview.
+
+For each decision below, the table gives the option chosen, the alternatives considered, and the trade-off that made the call.
+
+### 5a. State management — NgRx + Signals, not SignalStore-only
+
+| What | Trade-off |
+|---|---|
+| **Chosen** | NgRx as the global store + Signals at the leaf via `toSignal()` |
+| Alternative 1: NgRx alone | Templates pay the `(observable \| async)` pipe ceremony forever. The "as alias" workaround on `@else if` doesn't compile under Angular's strict templates — I hit that bug and the cleanest fix was bridging to signals. |
+| Alternative 2: SignalStore only (no NgRx) | Loses the time-travel debugging of Redux DevTools, which I rely on for audit-log debugging. Also doesn't match what most Angular shops already run in production. |
+| Alternative 3: RxJS + services, no store | Fine for tiny apps; doesn't scale to "employee list, employee detail, account list, audit log all needing to stay in sync after a delete". |
+
+**Pointer.** [`employee.facade.ts`](../client/src/app/features/employees/store/employee.facade.ts), [`employee-list.component.ts`](../client/src/app/features/employees/pages/employee-list/employee-list.component.ts), and the [NGRX_GUIDE.md](../NGRX_GUIDE.md) deep-dive.
+
+### 5b. Backend layout — strict MVC + repository + service split
+
+| What | Trade-off |
+|---|---|
+| **Chosen** | Routes → Controllers → Services → Repositories → Store |
+| Alternative 1: Single `server.js` | Faster to write, indefensible to maintain. The cascade-close-on-delete rule would sit next to a regex and a JSON parser. |
+| Alternative 2: Controllers calling the store directly | The audit-log diff computation would have nowhere coherent to live. Either it pollutes the controller (HTTP shape) or the store (data access) — there's no third place. |
+| Alternative 3: Repository only, no service | Where do you put "delete employee + cascade soft-close their open accounts + emit two kinds of audit entry"? The service layer is the answer. |
+
+**Pointer.** [`server/services/employee.service.js`](../server/services/employee.service.js) `remove()` is the showcase — it orchestrates two repositories and the audit service in one cohesive transaction-shaped function.
+
+### 5c. Audit log shape — diff for UPDATE, snapshot for CREATE/DELETE, named narrative for status flips
+
+| What | Trade-off |
+|---|---|
+| **Chosen** | Per-action shape: CREATE/DELETE store a full snapshot, UPDATE stores a `changes[]` array of `{field, before, after}`, CLOSE/REOPEN store a named narrative (no diff) |
+| Alternative 1: Always store a full snapshot | Easy to implement, terrible to read. Looking at an UPDATE row to spot "what changed?" means diffing two JSON blobs in your head |
+| Alternative 2: Always store a diff | UPDATE works, but CREATE has no "before" to diff against, and DELETE leaves you with nothing to inspect afterwards |
+| Alternative 3: Store the raw HTTP payload | The validator already normalises the payload — re-storing it would mean re-validating at read time. Snapshotting the *persisted* row is the right boundary |
+
+**Pointer.** [`server/services/audit.service.js`](../server/services/audit.service.js) `diff()` and the per-action `record*` methods.
+
+### 5d. Soft-delete for accounts, hard-delete for employees + cascade soft-close
+
+| What | Trade-off |
+|---|---|
+| **Chosen** | `DELETE /api/accounts/:id` → status flips to CLOSED; `DELETE /api/employees/:id` → row removed, all owned OPEN accounts cascade-soft-close |
+| Alternative 1: Hard-delete everything | Audit history vanishes with the row. Useless for compliance. |
+| Alternative 2: Soft-delete everything (including employees) | UI becomes about "active vs deactivated" rows everywhere, search/filter has to exclude soft-deleted by default. Worth doing in a real product, overkill for this scope |
+| Alternative 3: Cascade hard-delete the accounts when employee is deleted | Loses the linkage between historical accounts and the (now-gone) employee — audit entries that reference the cascaded-closed accounts still resolve because the entries persist |
+
+**Pointer.** [`server/services/employee.service.js`](../server/services/employee.service.js) `remove()` walks the cascade. The unit test `employee.service.test.js → cascade behaviour` proves it.
+
+### 5e. Clamp `MAX_PAGE_SIZE`, don't reject
+
+| What | Trade-off |
+|---|---|
+| **Chosen** | Silent clamp at 100 with the actual size echoed back in the response envelope |
+| Alternative: 400 Bad Request | Cleaner contract, but breaks any existing caller that sends an over-sized request without realising the limit. For an internal admin tool with one known client (our own UI), graceful degradation wins |
+
+**Pointer.** [MAX_PAGE_SIZE_CLAMP.md](./MAX_PAGE_SIZE_CLAMP.md) explains the four-test pattern that proves the clamp works without breaking the normal path.
+
+### 5f. Validation — hand-rolled, not zod/joi
+
+| What | Trade-off |
+|---|---|
+| **Chosen** | Pure-function validators returning `{ field, message }[]` arrays |
+| Alternative: zod / joi / express-validator | Cleaner schemas, automatic type inference, but adds a dependency and locks the validation language to the chosen library. For a take-home, the lower-dependency choice is more defensible — and the validation rules are simple enough that the hand-rolled version is shorter |
+| What I'd reverse | At ~5 fields per resource it's fine. At 20+ fields with conditional rules, zod becomes worth the dependency cost |
+
+**Pointer.** [`server/validators/`](../server/validators/) for the three pure-function modules.
+
+### Decisions where the right answer was "yes, it's old, and that's fine"
+
+A senior trait: knowing when to **not** chase the new thing.
+
+- **CommonJS, not ESM, in the backend.** Node supports both; mixing them is a footgun. The whole backend is consistently CommonJS — the IDE flags TS80001 about converting, which I ignored. Consistency > novelty.
+- **Karma + Jasmine for Angular unit tests, not Jest.** Karma is what `ng new` scaffolds. Migrating would have meant fighting the toolchain for zero gain. I chose Jest for the *backend* tests where there was no existing setup to disrupt.
+- **No CDK Overlay for the confirm dialog.** Hand-rolled focus management instead. The CDK is the right answer in a real product; rolling it by hand was the right answer here because it makes the WAI-ARIA modal pattern visible in the code. Documented in [ACCESSIBILITY_AUDIT.md §4c](./ACCESSIBILITY_AUDIT.md#4c-dialog-focus-management).
+
+These are all answers I'd defend in an interview as "pragmatism over dogma" — the most senior trait in the article's list.
+
+---
+
+## 6. Quantified impact — the honest numbers
+
+There are no production metrics. There are still numbers worth quoting — and the honest framing matters more than the size of the numbers.
+
+### Coverage and completeness
+
+| Metric | Value |
+|---|---|
+| Required spec features delivered | 100% (employees CRUD, accounts CRUD, all 5 HTTP verbs, NgRx, reactive forms + async unique-email validator, HTTP interceptors, problem-details errors, README) |
+| Listed bonus items delivered | 3 of 3 (sort + pagination, append-only audit log, Cypress e2e) |
+| Frontend unit test files | 4 (reducer, effect, service, form component) |
+| Backend Jest test files | 2 (audit service, employee service) — covering ~30 test cases |
+| Cypress end-to-end specs | 4 (employee CRUD, account CRUD, audit log, filter composition) |
+| WCAG 2.1 success criteria addressed | 9 criteria across Levels A and AA, with one AAA bonus |
+
+### Responsiveness
+
+| Tier | Targets |
+|---|---|
+| Phone portrait (≤ 480 px) | iPhone SE 375, iPhone 16/17 family 393–440, Galaxy S25 412, Pixel 9 412 |
+| Phone landscape / small (≤ 640 px) | Single-column forms, brand subtitle hidden |
+| Tablet portrait (≤ 768 px) | Page-header actions wrap, email column hidden in list, summary tiles pin 2×2 |
+| Tablet landscape / small laptop (≤ 1024 px) | Tighter cell padding, 4-col filter, header utility chip hidden |
+| Laptop (1240 px) | Default container max |
+| QHD (≥ 1440 px) | Container grows to 1360 px |
+| FHD (≥ 1920 px) | 1560 px, body bumps to 16 px |
+| 2K (≥ 2560 px) | 1760 px, body 17 px |
+| 4K (≥ 3840 px) | 2000 px cap, body 18 px |
+
+That's a single responsive system covering nine breakpoints with one set of utilities.
+
+### Files
+
+| Surface | Count |
+|---|---|
+| Total source files (excluding node_modules and config) | ~90 |
+| Backend Node files | ~25 (config, middleware, models→repositories+services, validators, controllers, routes, utils, tests) |
+| Frontend TypeScript files | ~50 |
+| Component templates and styles | ~30 |
+| Documentation in `docs/` | 5 (NgRx guide, MAX_PAGE_SIZE clamp, accessibility audit, interview reflection, this playbook) |
+
+### How to talk about these numbers
+
+**Don't say** "Look at all this!" — feature lists sound junior.
+
+**Do say** "*Test coverage was deliberately concentrated on the two services where a regression would silently corrupt data — the audit service's diff logic and the employee service's cascade-delete behaviour. The unit tests pin those down; the Cypress specs catch UI regressions on the four highest-traffic flows.*"
+
+That sentence reframes "30 tests" as "30 tests on the right things". That's senior.
+
+### Numbers I deliberately don't claim
+
+- I don't have **production latency numbers** because there's no production
+- I don't claim **bundle size** because I haven't run a webpack-bundle-analyzer pass
+- I don't claim **uptime** because the mock backend resets on restart
+- I don't claim **user satisfaction** because there are zero users
+
+Naming what you *don't* measure is, again, the senior signal. Saying "I don't have hard production numbers because the brief is take-home-shaped" is more credible than inventing them.
+
+---
+
+## 7. The messy parts (what didn't work)
+
+If you can't name three things that went wrong on a project, the interviewer assumes you didn't pay attention. Have these ready.
+
+### 7a. The branded `EmployeeId` type that got reverted
+
+Mid-project I tried introducing a TypeScript branded type for `EmployeeId` to make the foreign-key relationship between Employee and Account compile-time enforceable. I got two files into the refactor and stopped: the cascade through services, facades, effects, actions, tests, and seed data was going to be ~15 files and the safety win was marginal because there's only ever one id type per resource.
+
+**The lesson.** Branded types pay off when an id type is genuinely confusable with another (two different number ids, two different string ids). Here, the cost was real and the benefit was theoretical. I reverted and shipped a lighter alternative — a type alias (`type EmployeeId = string`) used in the Account model as a documentation hint. Same readability win at one-thousandth the refactor cost.
+
+**Pointer.** [`account.model.ts`](../client/src/app/core/models/account.model.ts) uses `EmployeeId` as the FK type.
+
+### 7b. The output-alias trick that broke Angular's strict template compiler
+
+The confirm-dialog component originally used `@Output('confirm') readonly confirmed` — aliasing the public binding name `confirm` so consumers could use the conventional `(confirm)="..."` without `confirm` shadowing `window.confirm` inside the component. Worked great until Angular's strict template compiler refused to resolve the alias at the consumer site.
+
+**The lesson.** Output aliases are fragile under `strictTemplates: true`. The fix was renaming the outputs to `confirmed`/`cancelled` and updating three consumer templates to match. Renames are cheap; chasing compiler bugs around clever aliases is not. The Angular style guide actually recommends past-tense output names anyway, so the right answer was sitting there the whole time.
+
+### 7c. The parser-error around pipes inside `(click)` actions
+
+After migrating away from `(observable | async)` patterns, the pagination buttons used `(click)="onPage(-1, ((totalPages$ | async) ?? 1))"`. Angular's expression parser silently rejects pipes inside action expressions — but the error message points at the *next* expression in the template, sending you on a wild goose chase.
+
+**The lesson.** Two fixes were possible: wrap the whole footer in `@if ((totalPages$ | async) ?? 1; as totalPages)` and use the local variable, or migrate the parent component to signals so `totalPages()` is a synchronous read. I went with the second because it solved the immediate problem *and* made the rest of the template cleaner. Sometimes the right fix is broader than the bug.
+
+### 7d. The mock backend persisting across Cypress runs
+
+The Cypress audit-log specs ran fine the first time and then started failing on the second — the audit log had carryover entries from the previous run, so "the first entry should be a CREATE" was no longer true after another iteration.
+
+**The lesson.** Tests have to be order-independent. Two fixes possible: add a `/api/test/reset` endpoint, or write tests that don't depend on counts. I chose the second — every assertion checks the *first* (newest) audit entry, and every test that creates data uses a `Date.now()`-derived unique value. Tests stay green forever instead of working until something else changes.
+
+### 7e. The "production-shaped, not production-ready" tension
+
+I keep wanting to label things production-ready. They're not. The store is in-memory, there's no auth, no CI pipeline, no monitoring, no health endpoints, no Docker file. Calling the project "production-ready" in interviews would be a lie. Calling it "production-shaped" is honest — the layering, the audit log, the validation rules, the responsive design, the accessibility audit all match what would ship at a bank. The plumbing doesn't.
+
+**The lesson.** Pre-build the disclaimer into your pitch. The article's anti-pattern about "overselling" applies here. Saying *"production-shaped, with the deployment story still to do"* immediately defuses the follow-up question.
+
+---
+
+## 8. Ownership beyond code
+
+The article calls this out specifically: senior devs influence more than their own commits. For a solo take-home, this looks different than for a team project — but it still exists.
+
+### What ownership looks like on a solo project
+
+| What seniors do on teams | What I did here that's equivalent |
+|---|---|
+| Mentor or onboard others | Wrote the [NGRX_GUIDE](../NGRX_GUIDE.md) and [ACCESSIBILITY_AUDIT](./ACCESSIBILITY_AUDIT.md) for an audience of "a junior dev who joins after me" |
+| Drive technical decisions in design reviews | The decision tree in [§5](#5-decision-tree--why-this-over-the-alternatives) above — every major call has the alternatives named and the trade-off documented |
+| Work with product on scope | Treated the spec as a starting point, not a contract — added the audit log, the responsive system, the WCAG audit, the MAX_PAGE_SIZE hardening |
+| Set up CI/CD, observability | Not done — but flagged in the [senior-dev review](../README.md#10-senior-dev-review-whats-missing) as the next priorities |
+| Write docs, RFCs, postmortems | Five docs in `docs/` plus an architecture section in the README plus per-feature READMEs at the top of every major component |
+| Push back on bad requirements | Called out where the spec was thin — e.g. the audit log requirement is a one-liner bonus; I treated it as a first-class feature because banks audit everything |
+
+### The killer move — self-review
+
+The strongest senior signal I can show here is **the senior-dev review I wrote of my own work, before any external reviewer asked**. That section of the README walks through every gap, every untested layer, every architectural smell I see in my own code — and then prioritises the next five things to fix.
+
+That's not what someone playing it safe does. Playing it safe means submitting clean code and hoping no one looks too closely. Self-reviewing means saying *"here's where I'd push back on myself in a PR review."*
+
+That document is the thing I'd point to if asked "what shows you can lead?".
+
+### How to say this out loud
+
+> *"On a real team I'd lean heavily on PR review for catching what I miss. For a solo take-home there's no second pair of eyes, so I wrote a senior-dev review of my own work — every gap, every untested layer, every architectural smell — and then prioritised the next five things to fix. The next two PRs after the initial submission ship the top two: backend tests on the highest-risk services, and the MAX_PAGE_SIZE clamp with full justification."*
+
+That sentence demonstrates ownership without anyone else in the room.
+
+---
+
+## 9. Demo readiness
+
+You may or may not be asked to demo live. Either way, be ready.
+
+### What's already ready
+
+- **Single command to run.** From the project root: `npm run install:all` once, then `npm start` — both processes start with `concurrently`, output is colour-prefixed `[SERVER]` and `[CLIENT]`.
+- **Seeded data.** 33 employees, 12 accounts, three of which have fixed UUIDs so the URL `/employees/11111111-…` always resolves to Aarav Sharma. That's the employee you demo on.
+- **README walkthrough.** Prerequisites, install, run, tests, REST contract, architecture, bonus items.
+
+### Pre-call setup (do these the morning of)
+
+1. Run `npm run install:all` once to pre-warm the node_modules cache
+2. Run `npm start` and open <http://localhost:4200> in a fresh browser tab
+3. Have Chrome DevTools (the Network and Console tabs) ready in case you want to show the correlation-id header end-to-end
+4. Have the GitHub repo open in another tab so you can click into a file without alt-tabbing through your editor
+5. Have *this playbook* and the [reflection](./INTERVIEW_REFLECTION.md) open on a second monitor (or printed)
+
+### Have the four "good demo moments" rehearsed
+
+| What to show | Why it lands |
+|---|---|
+| **Click an employee → toggle status → look at audit log** | UPDATE entry appears at the top with a clean `status: ACTIVE → INACTIVE` diff. Shows the audit log working in real time. |
+| **Try to delete an employee → press Escape** | Confirm dialog opens, focus is on Cancel, Escape closes the dialog *and* focus returns exactly to the Delete button. Shows accessibility you can't fake. |
+| **Open Cypress runner via `npm --prefix client run e2e:open`** | Pick one of the four specs, watch it walk through the UI. Don't talk over it — let the specs speak. |
+| **Open DevTools → Network → trigger any request** | The `X-Correlation-Id` header is set by the client interceptor, echoed by the Express middleware, and printed in the morgan log. End-to-end traceability with no extra dependencies. |
+
+### What to do if it breaks
+
+Laugh, screenshot the error, narrate what you'd debug. "*Looks like the dev server didn't proxy correctly — in a real product this is where I'd open the Network tab and check the response URL.*" The interview is over if you panic; it isn't if you treat the failure as a real-world debug session.
+
+---
+
+## 10. Tailoring the depth by interviewer
+
+Three roles, three different angles on the same project. Have all three loaded.
+
+### 10a. Engineering manager / non-technical interviewer
+
+**Lead with:** impact, collaboration, documentation, scoping decisions.
+
+> *"The interesting parts of this project weren't the code — they were the choices about what to put in scope. The spec was tight; I extended it where it mattered (audit log, accessibility, responsive) and stayed inside the lines where it didn't (no auth, no real database). I wrote the docs and the self-review as if I was onboarding a teammate, because that's what I'd want someone else's project to do for me."*
+
+What to point at: the [`docs/`](.) folder, the README's "Notes for the reviewer" section, the self-review.
+
+### 10b. Senior IC / staff engineer
+
+**Lead with:** architecture, decisions with trade-offs named, edge cases, what you'd reverse.
+
+> *"The single most interesting layering decision was the repository + service split. Most take-homes ship a single `server.js`. I split it because the business rules — cascade-soft-close, audit recording, soft-vs-hard delete — need to be unit-testable against a stubbed repository. The cost is 18 files instead of one. The win is that the cascade-delete logic has its own Jest suite and I can prove it works without running an HTTP server."*
+
+What to point at: [`employee.service.js`](../server/services/employee.service.js) `remove()` + its test file, the section in [§5](#5-decision-tree--why-this-over-the-alternatives).
+
+### 10c. CTO / founder / business-side interviewer
+
+**Lead with:** stack rationale, total-cost-of-ownership, hiring implications, business outcomes.
+
+> *"For a regulated-industry product like a banking admin tool, Angular's strict template type-checking and NgRx's discipline are exactly the constraints you want — they push back on the kinds of shortcuts that bite you at audit time. The validation rules are duplicated across client and server today, which is the first thing I'd consolidate before adding a third consumer. The audit log is append-only by design, with correlation-id traceability, so the compliance story is mostly already there."*
+
+What to point at: the audit log section of [§3 pitch](#3-the-2-minute-pitch-rehearsed), the WCAG mapping table in [ACCESSIBILITY_AUDIT.md](./ACCESSIBILITY_AUDIT.md#6-wcag-mapping).
+
+### Reading the room mid-answer
+
+If your interviewer's eyes glaze over while you're talking about NgRx selectors, pivot to impact. If they lean in when you mention the audit log, go deeper on the diff design. The senior trait isn't sticking to a script — it's noticing when the script isn't landing.
+
+---
+
+## 11. Curiosity flip — the questions you ask back
+
+The article calls this out explicitly: ending with curiosity shifts you from interviewee to peer. For this project, the natural follow-ups to flip back are:
+
+| What they just asked | What you flip back |
+|---|---|
+| "Why NgRx over SignalStore?" | *"What's your team's current state-management story? I've seen the Signals migration land different ways at different shops."* |
+| "Why MVC + repository on the backend?" | *"At what team size did your backend hit the point where untestable business rules started biting you?"* |
+| "Why so much accessibility work?" | *"Do you have a formal a11y audit cadence, or is it ad-hoc? I'm curious where banking-tech teams sit on that spectrum."* |
+| "Why this project as your showcase?" | *"What does a great senior-Angular candidate's project demo look like to you? I'd rather hear what you wish more candidates did."* |
+
+The last one is the killer. It signals you're not just defending your work; you're trying to learn what excellent looks like in their context. That's exactly the energy a senior hire brings on day one.
+
+---
+
+## 12. Anti-patterns to avoid on this project specifically
+
+The article's list of anti-patterns is generic. Here's the project-specific version.
+
+### Don't list NgRx files as features
+
+> ❌ *"It has actions, reducers, selectors, effects, facades, and a router-store integration."*
+
+That's a junior describing the boilerplate.
+
+> ✅ *"NgRx is the source of truth, with one facade per feature. The store doesn't change when I added Signals — that was the seam where I bolted them on at the component layer."*
+
+That's a senior describing the architecture.
+
+### Don't oversell the test coverage
+
+> ❌ *"It has comprehensive test coverage."*
+
+It doesn't. The frontend has four spec files, the backend has two, Cypress has four flows. The validators have none. Controllers have none. Middleware has none.
+
+> ✅ *"Test coverage is concentrated on the two services where a regression would silently corrupt data — the audit service's diff logic and the employee service's cascade-delete. The rest fails loudly enough that the Cypress safety net catches it. Filling the validator and controller coverage is the next backlog item."*
+
+### Don't apologise for the in-memory backend
+
+> ❌ *"I know an in-memory backend isn't realistic, but…"*
+
+It's a take-home brief. Of course it's in-memory.
+
+> ✅ *"The store is in-memory by design — swapping it for Postgres would only touch the repositories. The service layer, the audit logic, the validators all stay untouched. That decoupling is the point of the repository pattern."*
+
+### Don't say "responsive" without showing the breakpoints
+
+> ❌ *"It's responsive."*
+
+Means nothing. Lots of apps that aren't responsive are described as "responsive".
+
+> ✅ *"Five reduction breakpoints from 1024 down to 480, plus four expansion tiers from 1440 up to 4K. The container max grows, the typography scales, and tables drop columns at specific widths — `hidden-portrait` for the employee email column, `hidden-tablet` reserved for future use."*
+
+### Don't claim ownership you don't have
+
+It's a solo project, so this is mostly safe — but don't pretend the spec was something it wasn't. The spec gave you the brief, the rubric, and the bonus items. You owned what you built on top of it.
+
+> ✅ *"The spec set the floor — CRUD on two resources, all five HTTP verbs. Above the floor, the audit log, the responsive system, the accessibility audit, and the MAX_PAGE_SIZE hardening were my calls."*
+
+---
+
+## 13. The day-before / morning-of / during-the-call checklist
+
+### The day before
+
+- [ ] Read the [pitch](#3-the-2-minute-pitch-rehearsed) and time yourself out loud — target 90 seconds
+- [ ] Re-read the [INTERVIEW_REFLECTION](./INTERVIEW_REFLECTION.md) — internalise the five answers
+- [ ] Spot-check that `npm run install:all` and `npm start` still work — no last-minute dependency surprises
+- [ ] Sketch the [architecture diagram](#4-architecture-you-can-draw-on-the-fly) on paper twice without looking
+- [ ] Pick one [messy part](#7-the-messy-parts-what-didnt-work) to lead with if you're asked "what didn't go well?"
+
+### The morning of
+
+- [ ] Run `npm start` in a terminal, leave it running
+- [ ] Open three browser tabs: the running app, the GitHub repo, the docs folder
+- [ ] Print or have on a second screen: this playbook and the reflection doc — for glancing only, not reading
+- [ ] Drink water — interviewing dry is the silent skill killer
+- [ ] Don't read the playbook end-to-end — that primes you to recite. Skim the TL;DR sections only
+
+### During the call
+
+- [ ] Lead with the [2-minute pitch](#3-the-2-minute-pitch-rehearsed). Then **stop and wait**. Most candidates keep talking; seniors give the interviewer space to follow up.
+- [ ] When you don't know an answer, say "*Honestly, I don't know — here's how I'd find out*". Senior signal #1.
+- [ ] When the interviewer disagrees with a decision, say "*That's fair. The trade-off I was making was X — what would you have done?*". Senior signal #2.
+- [ ] At the 50-minute mark, ask one of the [curiosity-flip questions](#11-curiosity-flip--the-questions-you-ask-back). Senior signal #3.
+
+### After
+
+- [ ] Send a short follow-up email naming one specific thing you discussed and what you'd dig into further. That's the interview's last impression and it's free.
+
+---
+
+## One paragraph to internalise
+
+> The interviewer doesn't care how many lines of code I wrote, what frameworks I used, or whether every test passes. They care whether I can stand at a whiteboard, sketch the system, name the alternatives I rejected, point at three specific things I'd change today, and ask better questions than they expected. The code is just the prop. The thinking is the show.
+
+---
+
+*Banking Admin Portal — interview preparation.*

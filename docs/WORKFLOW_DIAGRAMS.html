@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Banking Admin Portal — Architecture &amp; Workflow Reference</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ---------- Design tokens (matches the app's TD-inspired palette) -- */
+      :root {
+        --color-primary: #008a00;
+        --color-primary-dark: #006b00;
+        --color-primary-deep: #004f00;
+        --color-primary-soft: #e8f5e8;
+        --color-primary-tint: #f2f9f2;
+        --color-accent: #ffc72c;
+        --color-text: #1c1c1c;
+        --color-text-muted: #555e66;
+        --color-text-subtle: #6f7780;
+        --color-border: #d6d9dc;
+        --color-border-soft: #e9ebee;
+        --color-bg: #f5f6f8;
+        --color-surface: #ffffff;
+        --color-surface-alt: #fafbfc;
+
+        --font-sans: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+          monospace;
+
+        --shadow-sm: 0 1px 1px rgba(28, 28, 28, 0.04);
+        --shadow-md: 0 2px 6px rgba(28, 28, 28, 0.06);
+        --shadow-lg: 0 6px 18px rgba(28, 28, 28, 0.08);
+
+        --radius-sm: 4px;
+        --radius-md: 8px;
+        --radius-lg: 16px;
+
+        --page-width: 794px; /* A4 portrait at 96 DPI */
+      }
+
+      /* ---------- Reset --------------------------------------------------- */
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--font-sans);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--color-text);
+        background: var(--color-bg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* ---------- Page container (mimics a paper page on screen) -------- */
+      .page {
+        max-width: var(--page-width);
+        margin: 24px auto;
+        background: var(--color-surface);
+        box-shadow: var(--shadow-lg);
+        border-radius: var(--radius-md);
+        padding: 56px 48px;
+        page-break-after: always;
+        break-after: page;
+        position: relative;
+      }
+      .page:last-child {
+        page-break-after: auto;
+      }
+
+      /* ---------- Typography --------------------------------------------- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-sans);
+        color: var(--color-text);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+        margin: 0 0 12px;
+      }
+      h1 {
+        font-size: 36px;
+        font-weight: 800;
+      }
+      h2 {
+        font-size: 26px;
+        position: relative;
+        padding-bottom: 10px;
+        margin-bottom: 24px;
+      }
+      h2::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 44px;
+        height: 3px;
+        background: var(--color-primary);
+        border-radius: 3px;
+      }
+      h3 {
+        font-size: 19px;
+        margin-top: 28px;
+        color: var(--color-primary-deep);
+      }
+      p {
+        margin: 0 0 14px;
+        color: var(--color-text);
+      }
+      p.lead {
+        font-size: 17px;
+        color: var(--color-text-muted);
+      }
+      .muted {
+        color: var(--color-text-muted);
+      }
+      strong {
+        color: var(--color-text);
+        font-weight: 700;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        background: var(--color-primary-soft);
+        color: var(--color-primary-deep);
+        padding: 1px 6px;
+        border-radius: var(--radius-sm);
+      }
+
+      /* ---------- Cover page --------------------------------------------- */
+      .cover {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 1000px;
+        padding: 72px 64px;
+      }
+      .cover-band {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: var(--color-primary);
+        border-top-left-radius: var(--radius-md);
+        border-top-right-radius: var(--radius-md);
+      }
+      .cover-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 64px;
+      }
+      .cover-mark__square {
+        width: 56px;
+        height: 56px;
+        background: var(--color-primary);
+        border-radius: var(--radius-sm);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
+      .cover-mark__text {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+      }
+      .cover-title {
+        font-size: 48px;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin: 0 0 16px;
+      }
+      .cover-subtitle {
+        font-size: 22px;
+        color: var(--color-text-muted);
+        font-weight: 400;
+        margin: 0 0 48px;
+        line-height: 1.4;
+      }
+      .cover-tagline {
+        background: var(--color-primary-soft);
+        border-left: 4px solid var(--color-primary);
+        padding: 20px 24px;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        font-size: 16px;
+        color: var(--color-text);
+        line-height: 1.6;
+      }
+      .cover-meta {
+        margin-top: auto;
+        padding-top: 48px;
+        border-top: 1px solid var(--color-border-soft);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .cover-meta__label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        margin-bottom: 4px;
+      }
+      .cover-meta__value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-text);
+      }
+
+      /* ---------- Table of contents -------------------------------------- */
+      .toc h2 {
+        margin-bottom: 32px;
+      }
+      .toc-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .toc-item {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--color-border-soft);
+      }
+      .toc-item__num {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-primary);
+        min-width: 32px;
+      }
+      .toc-item__title {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-text);
+      }
+      .toc-item__sub {
+        display: block;
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--color-text-muted);
+        margin-top: 2px;
+      }
+      .toc-section {
+        margin: 28px 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+      }
+
+      /* ---------- Section pages ----------------------------------------- */
+      .section-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+        margin-bottom: 6px;
+      }
+
+      /* Diagram card wrapping each Mermaid block */
+      .diagram-card {
+        background: var(--color-surface-alt);
+        border: 1px solid var(--color-border-soft);
+        border-radius: var(--radius-md);
+        padding: 24px 20px;
+        margin: 24px 0;
+        overflow-x: auto;
+      }
+      .diagram-card .mermaid {
+        font-family: var(--font-sans) !important;
+        text-align: center;
+      }
+      .diagram-card .mermaid svg {
+        max-width: 100% !important;
+        height: auto !important;
+      }
+
+      .caption {
+        font-size: 13px;
+        color: var(--color-text-muted);
+        font-style: italic;
+        margin: 8px 0 16px;
+        padding: 0 8px;
+      }
+      .caption strong {
+        font-style: normal;
+        color: var(--color-text);
+      }
+
+      /* Callout boxes */
+      .callout {
+        background: var(--color-primary-soft);
+        border-left: 4px solid var(--color-primary);
+        padding: 14px 18px;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        margin: 16px 0;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+      .callout strong {
+        color: var(--color-primary-deep);
+      }
+
+      /* Tables (used in section 1) */
+      table.compact {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0;
+        font-size: 13px;
+      }
+      table.compact th,
+      table.compact td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--color-border-soft);
+      }
+      table.compact th {
+        background: var(--color-surface-alt);
+        color: var(--color-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      /* Closing page tagline */
+      .closing-quote {
+        font-size: 18px;
+        line-height: 1.6;
+        font-style: italic;
+        color: var(--color-text);
+        background: var(--color-primary-tint);
+        border-left: 4px solid var(--color-primary);
+        padding: 24px 28px;
+        margin: 32px 0;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      }
+      .closing-footer {
+        margin-top: auto;
+        padding-top: 32px;
+        border-top: 1px solid var(--color-border-soft);
+        font-size: 12px;
+        color: var(--color-text-muted);
+        text-align: center;
+      }
+
+      /* ---------- Print rules -------------------------------------------- */
+      @page {
+        size: A4;
+        margin: 14mm;
+      }
+      @media print {
+        body {
+          background: white;
+        }
+        .page {
+          box-shadow: none;
+          border-radius: 0;
+          margin: 0;
+          padding: 32px 28px;
+          max-width: 100%;
+        }
+        .cover {
+          padding: 48px 36px;
+          min-height: auto;
+        }
+        h2 {
+          page-break-after: avoid;
+        }
+        .diagram-card {
+          page-break-inside: avoid;
+        }
+        .callout,
+        .caption {
+          page-break-inside: avoid;
+        }
+        /* Ensure colors print on Chrome / Edge / Firefox */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ================================================================ -->
+    <!-- COVER PAGE                                                       -->
+    <!-- ================================================================ -->
+    <section class="page cover">
+      <div class="cover-band"></div>
+
+      <div>
+        <div class="cover-mark">
+          <span class="cover-mark__square">TD</span>
+          <span class="cover-mark__text">Banking Admin Portal</span>
+        </div>
+
+        <div class="section-eyebrow">Architecture &amp; Workflow Reference</div>
+
+        <h1 class="cover-title">The whole project,<br />drawn out.</h1>
+        <p class="cover-subtitle">
+          System architecture, layered structure on both sides, request lifecycle, every key
+          user flow, and the audit-recording pipeline &mdash; all in one place.
+        </p>
+
+        <div class="cover-tagline">
+          Every diagram in this document describes a real piece of the codebase you can open
+          and point at. None of it is aspirational &mdash; it&rsquo;s all in the repo.
+        </div>
+      </div>
+
+      <div class="cover-meta">
+        <div>
+          <div class="cover-meta__label">Author</div>
+          <div class="cover-meta__value">Piyush Garg</div>
+        </div>
+        <div>
+          <div class="cover-meta__label">Project</div>
+          <div class="cover-meta__value">Senior Angular Developer take-home</div>
+        </div>
+        <div>
+          <div class="cover-meta__label">Stack</div>
+          <div class="cover-meta__value">Angular 17 &middot; NgRx + Signals &middot; Express</div>
+        </div>
+        <div>
+          <div class="cover-meta__label">Document</div>
+          <div class="cover-meta__value">Architecture reference v1.0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- TABLE OF CONTENTS                                                -->
+    <!-- ================================================================ -->
+    <section class="page toc">
+      <div class="section-eyebrow">Contents</div>
+      <h2>Twelve diagrams. One reference.</h2>
+
+      <p class="lead">
+        Read top to bottom for a guided tour from system architecture down to the data
+        model, or jump to whichever section matches the conversation you&rsquo;re having.
+      </p>
+
+      <div class="toc-section">Structure &mdash; how the code is laid out</div>
+      <ul class="toc-list">
+        <li class="toc-item">
+          <span class="toc-item__num">01</span>
+          <span class="toc-item__title"
+            >System architecture &mdash; the 10 000-ft view
+            <span class="toc-item__sub">Browser, proxy, two processes, one store</span></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">02</span>
+          <span class="toc-item__title"
+            >Frontend layering
+            <span class="toc-item__sub"
+              >Components &middot; Facade &middot; NgRx &middot; HTTP interceptors</span
+            ></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">03</span>
+          <span class="toc-item__title"
+            >Backend layering (MVC + repository + service)
+            <span class="toc-item__sub"
+              >Middleware &middot; Routes &middot; Controllers &middot; Services &middot;
+              Repositories</span
+            ></span
+          >
+        </li>
+      </ul>
+
+      <div class="toc-section">Behaviour &mdash; how things flow over time</div>
+      <ul class="toc-list">
+        <li class="toc-item">
+          <span class="toc-item__num">04</span>
+          <span class="toc-item__title"
+            >Request lifecycle end-to-end
+            <span class="toc-item__sub">POST /api/employees through 13 layers</span></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">05</span>
+          <span class="toc-item__title"
+            >Creating an employee
+            <span class="toc-item__sub">Form &middot; async unique-email &middot; effect navigation</span></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">06</span>
+          <span class="toc-item__title"
+            >Toggling employee status (PATCH)
+            <span class="toc-item__sub">Field-level diff in the audit trail</span></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">07</span>
+          <span class="toc-item__title"
+            >Deleting an employee with cascade soft-close
+            <span class="toc-item__sub"
+              >One DELETE produces many audit entries</span
+            ></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">08</span>
+          <span class="toc-item__title"
+            >Closing &amp; reopening an account
+            <span class="toc-item__sub">CLOSE / REOPEN named narratives, not status diffs</span></span
+          >
+        </li>
+      </ul>
+
+      <div class="toc-section">Cross-cutting concerns &mdash; how state &amp; trust flow</div>
+      <ul class="toc-list">
+        <li class="toc-item">
+          <span class="toc-item__num">09</span>
+          <span class="toc-item__title"
+            >State management &mdash; NgRx + Signals split
+            <span class="toc-item__sub">Three seams where Signals appear</span></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">10</span>
+          <span class="toc-item__title"
+            >Correlation-id end-to-end
+            <span class="toc-item__sub">One id ties client log to server log to audit</span></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">11</span>
+          <span class="toc-item__title"
+            >Audit recording pipeline
+            <span class="toc-item__sub"
+              >No-op writes drop, named actions for status flips</span
+            ></span
+          >
+        </li>
+        <li class="toc-item">
+          <span class="toc-item__num">12</span>
+          <span class="toc-item__title"
+            >Data model
+            <span class="toc-item__sub">Entity-relationship view of the three tables</span></span
+          >
+        </li>
+      </ul>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §01 System architecture                                          -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 01 &middot; Structure</div>
+      <h2>System architecture &mdash; the 10 000-ft view</h2>
+
+      <p class="lead">
+        The whole stack on one page. Two processes, one proxy, one in-memory store.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+graph TB
+    Browser["Browser<br/>(any modern, ≥ 360px)"]
+
+    subgraph Client["Angular dev server :4200"]
+        AngularApp["Angular 17 SPA<br/>Standalone components<br/>NgRx + Signals"]
+        Proxy["proxy.conf.json<br/>/api/* → :3000"]
+    end
+
+    subgraph Server["Express mock API :3000"]
+        ExpressApp["Express app<br/>MVC + Repository + Service"]
+        Store[("In-memory store<br/>employees · accounts · auditLog")]
+    end
+
+    Browser -->|HTTPS| AngularApp
+    AngularApp -->|fetch /api/...| Proxy
+    Proxy -->|HTTP| ExpressApp
+    ExpressApp -->|read / write| Store
+
+    style Browser fill:#E8F5E8,stroke:#008A00
+    style Client fill:#EEF2FF,stroke:#1f4ed8
+    style Server fill:#FFF6DA,stroke:#B45309
+    style Store fill:#FBE7EB,stroke:#C7102E
+        </pre>
+      </div>
+
+      <p class="caption">
+        <strong>What to notice.</strong> Everything runs locally. No databases, no cloud
+        services, no auth provider. The proxy is what avoids CORS during development;
+        production would terminate at a reverse proxy (nginx, ALB, etc.) instead.
+      </p>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §02 Frontend layering                                            -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 02 &middot; Structure</div>
+      <h2>Frontend layering</h2>
+
+      <p class="lead">
+        Angular standalone components consume the NgRx store through per-feature facades.
+        Signals appear at the leaf via <code>toSignal()</code>. Two HTTP interceptors sit
+        between the services and the network.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+graph TB
+    subgraph View["View layer (templates + components)"]
+        Templates["Component templates<br/>@if / @for / @let"]
+        Components["Standalone components<br/>OnPush change detection<br/>signal() · computed() · effect()"]
+    end
+
+    subgraph Facade["Facade layer (interface)"]
+        EmployeeFacade["EmployeeFacade<br/>(Observable surface)"]
+        AccountFacade["AccountFacade"]
+        AuditService["AuditApiService<br/>(simple HTTP wrapper)"]
+    end
+
+    subgraph Store["NgRx store"]
+        Actions["Actions<br/>createActionGroup()"]
+        Reducers["Reducers<br/>createFeature()"]
+        Selectors["Selectors<br/>(memoised)"]
+        Effects["Effects<br/>(functional, HTTP)"]
+    end
+
+    subgraph HTTP["HTTP layer"]
+        CorrelationInterceptor["correlation-id interceptor"]
+        ErrorInterceptor["error interceptor"]
+        ApiServices["EmployeeApiService<br/>AccountApiService"]
+    end
+
+    Components --> Facade
+    EmployeeFacade --> Actions
+    AccountFacade --> Actions
+    EmployeeFacade -->|select| Selectors
+    Actions --> Reducers
+    Actions --> Effects
+    Effects --> Selectors
+    Effects --> ApiServices
+    AuditService --> ApiServices
+    ApiServices --> CorrelationInterceptor
+    CorrelationInterceptor --> ErrorInterceptor
+    ErrorInterceptor -.->|HTTP| Backend(("/api/* to Express"))
+
+    style View fill:#E8F5E8,stroke:#008A00
+    style Facade fill:#EEF2FF,stroke:#1f4ed8
+    style Store fill:#FFF6DA,stroke:#B45309
+    style HTTP fill:#FBE7EB,stroke:#C7102E
+        </pre>
+      </div>
+
+      <p class="caption">
+        <strong>What to notice.</strong> Components never import from
+        <code>Store</code> directly &mdash; they go through a facade. The facade exposes
+        Observables (<code>items$</code>, <code>loading$</code>); components decide whether
+        to consume them as observables or bridge them to signals via
+        <code>toSignal()</code>.
+      </p>
+
+      <div class="callout">
+        <strong>Exception:</strong> the audit log bypasses NgRx entirely &mdash; it&rsquo;s
+        read-only, single-view, and a full feature slice would be five files of boilerplate
+        for one GET endpoint.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §03 Backend layering                                             -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 03 &middot; Structure</div>
+      <h2>Backend layering (MVC + repository + service)</h2>
+
+      <p class="lead">
+        Each layer has exactly one job. The arrow direction is the <em>call</em> direction
+        &mdash; nothing ever calls upward.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+graph TB
+    HTTP["HTTP request"]
+
+    subgraph Middleware["Middleware (cross-cutting)"]
+        Cid["correlation-id"]
+        Logger["morgan logger"]
+        ErrHandler["error handler"]
+    end
+
+    subgraph Routes["Routes (URL → handler)"]
+        EmployeeRoutes["employee.routes.js"]
+        AccountRoutes["account.routes.js"]
+        AuditRoutes["audit.routes.js"]
+    end
+
+    subgraph Controllers["Controllers (HTTP shape)"]
+        EmployeeController["employee.controller.js"]
+        AccountController["account.controller.js"]
+        AuditController["audit.controller.js"]
+    end
+
+    subgraph Validators["Validators (pure functions)"]
+        CommonV["common.js"]
+        EmployeeV["employee.validator.js"]
+        AccountV["account.validator.js"]
+    end
+
+    subgraph Services["Services (business rules)"]
+        EmployeeSvc["employee.service.js<br/>cascade soft-close<br/>list query"]
+        AccountSvc["account.service.js<br/>soft-close on DELETE"]
+        AuditSvc["audit.service.js<br/>diff computation"]
+    end
+
+    subgraph Repos["Repositories (pure CRUD)"]
+        EmployeeRepo["employee.repository.js"]
+        AccountRepo["account.repository.js"]
+        AuditRepo["audit.repository.js<br/>(append-only)"]
+    end
+
+    Store[("data/store.js")]
+
+    HTTP --> Cid --> Logger --> Routes
+    Routes --> Controllers
+    EmployeeController --> EmployeeV --> CommonV
+    AccountController --> AccountV --> CommonV
+    EmployeeController --> EmployeeSvc
+    AccountController --> AccountSvc
+    AccountController --> EmployeeSvc
+    AuditController --> AuditSvc
+    EmployeeSvc --> EmployeeRepo
+    EmployeeSvc --> AccountRepo
+    EmployeeSvc --> AuditSvc
+    AccountSvc --> AccountRepo
+    AccountSvc --> AuditSvc
+    AuditSvc --> AuditRepo
+    EmployeeRepo --> Store
+    AccountRepo --> Store
+    AuditRepo --> Store
+
+    style Middleware fill:#EEF2FF,stroke:#1f4ed8
+    style Routes fill:#FFF6DA,stroke:#B45309
+    style Controllers fill:#E8F5E8,stroke:#008A00
+    style Validators fill:#FFF6DA,stroke:#B45309
+    style Services fill:#E8F5E8,stroke:#008A00
+    style Repos fill:#FBE7EB,stroke:#C7102E
+    style Store fill:#EEF2FF,stroke:#1f4ed8
+        </pre>
+      </div>
+
+      <div class="callout">
+        <strong>The unbreakable rule.</strong> A controller importing a repository, or a
+        service touching <code>data/store.js</code> directly, is the architectural smell.
+        None of them do.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §04 Request lifecycle                                            -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 04 &middot; Behaviour</div>
+      <h2>Request lifecycle end-to-end</h2>
+
+      <p class="lead">
+        A single <code>POST /api/employees</code> request, traced through every box that
+        touches it. Same pattern applies to PUT, PATCH, DELETE.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    participant User as Admin
+    participant View as Form
+    participant Facade as Facade
+    participant Effect as create effect
+    participant API as ApiService
+    participant CidI as cid interceptor
+    participant Express as Express
+    participant Ctrl as Controller
+    participant Val as Validator
+    participant Svc as Service
+    participant Repo as Repository
+    participant Audit as AuditService
+    participant Store as data/store
+
+    User->>View: submit form
+    View->>Facade: facade.create(payload)
+    Facade->>Effect: dispatch action
+    Effect->>API: api.create(payload)
+    API->>CidI: HTTP POST
+    CidI->>Express: + X-Correlation-Id
+    Express->>Ctrl: route handler
+    Ctrl->>Val: validateCreate(body)
+    Val-->>Ctrl: errors[] (empty)
+    Ctrl->>Svc: service.create(payload, ctx)
+    Svc->>Repo: insert(employee)
+    Repo->>Store: push
+    Svc->>Audit: recordEmployeeCreated
+    Audit->>Store: append entry
+    Svc-->>Ctrl: employee
+    Ctrl-->>API: 201 + JSON
+    API-->>Effect: createSuccess
+    Effect-->>Facade: reducer updates items[]
+    Facade-->>View: signal emits
+    View-->>User: redirect + toast
+        </pre>
+      </div>
+
+      <p class="caption">
+        <strong>What this proves.</strong> The single source of truth is the store. The view
+        never holds a copy of the employee &mdash; it reads through the facade, which reads
+        the store. Swap the in-memory store for Postgres tomorrow and only the repository
+        changes.
+      </p>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §05 Create employee                                              -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 05 &middot; User flow</div>
+      <h2>Creating an employee</h2>
+
+      <p class="lead">
+        From clicking <strong>+ New Employee</strong> to landing on the freshly-created
+        detail page, with the async unique-email check in between.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    actor Admin
+    participant List as List page
+    participant Form as Form page
+    participant Facade as EmployeeFacade
+    participant API as POST /api/employees
+    participant Service as EmployeeService
+    participant Audit as AuditService
+
+    Admin->>List: click "+ New Employee"
+    List->>Form: navigate /employees/new
+    Form->>Form: render reactive form
+    Admin->>Form: fill fields
+    Admin->>Form: tab off email
+    Form->>API: GET /email-available
+    API-->>Form: { available: true }
+    Form->>Form: clear async validator
+    Admin->>Form: click "Create employee"
+    Form->>Facade: facade.create(payload)
+    Facade->>API: POST /api/employees
+    API->>Service: service.create(payload, ctx)
+    Service->>Service: uuid + status: ACTIVE
+    Service->>Audit: record CREATE entry
+    Service-->>API: 201 + employee
+    API-->>Facade: createSuccess
+    Facade->>Form: success effect runs
+    Form->>List: navigate /employees/:id
+    List->>Admin: toast "Employee created"
+        </pre>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §06 Toggle status (PATCH)                                        -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 06 &middot; User flow</div>
+      <h2>Toggling employee status (PATCH)</h2>
+
+      <p class="lead">
+        The <strong>Mark INACTIVE</strong> / <strong>Mark ACTIVE</strong> button on the
+        detail page issues a partial update &mdash; just the <code>status</code> field. The
+        audit trail records a clean <code>status: ACTIVE &rarr; INACTIVE</code> diff.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    actor Admin
+    participant Detail as Detail page
+    participant Facade as EmployeeFacade
+    participant API as PATCH /api/employees/:id
+    participant Service as EmployeeService
+    participant Audit as AuditService
+
+    Admin->>Detail: click "Mark INACTIVE"
+    Detail->>Facade: patchStatus(id, 'INACTIVE')
+    Facade->>API: PATCH { status: INACTIVE }
+    API->>Service: service.patch(...)
+    Service->>Service: snapshot before
+    Service->>Service: repository.update(...)
+    Service->>Service: snapshot after
+    Service->>Audit: recordEmployeeUpdated(before, after)
+    Note right of Audit: changes: [{<br/>field: status,<br/>before: ACTIVE,<br/>after: INACTIVE<br/>}]
+    Service-->>API: 200 + updated
+    API-->>Facade: patchStatusSuccess
+    Facade->>Detail: badge re-renders
+    Detail->>Admin: toast + audit-log<br/>shows UPDATE at top
+        </pre>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §07 Delete with cascade                                          -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 07 &middot; User flow</div>
+      <h2>Deleting an employee with cascade soft-close</h2>
+
+      <p class="lead">
+        The most complex single action in the system. One DELETE produces multiple audit
+        entries: one <code>DELETE</code> for the employee and one
+        <code>CASCADE_CLOSE</code> per OPEN account they owned.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    actor Admin
+    participant Detail as Detail page
+    participant Dialog as Confirm dialog
+    participant Facade as EmployeeFacade
+    participant API as DELETE /employees/:id
+    participant EmpSvc as EmployeeService
+    participant EmpRepo as EmployeeRepo
+    participant AcctRepo as AccountRepo
+    participant Audit as AuditService
+
+    Admin->>Detail: click "Delete"
+    Detail->>Dialog: confirmOpen.set(true)<br/>focus moves to Cancel
+    Admin->>Dialog: click "Delete"
+    Dialog->>Detail: (confirmed) emit
+    Detail->>Facade: facade.delete(id)
+    Facade->>API: DELETE request
+
+    API->>EmpSvc: remove(id, ctx)
+    EmpSvc->>EmpRepo: findById(id)
+    EmpRepo-->>EmpSvc: employee
+    EmpSvc->>AcctRepo: findByEmployeeId
+    AcctRepo-->>EmpSvc: OPEN accounts[]
+    EmpSvc->>EmpRepo: deleteById
+    EmpSvc->>AcctRepo: updateAllByEmployeeId<br/>(status: CLOSED)
+    EmpSvc->>Audit: recordEmployeeDeleted
+    loop For each OPEN account
+        EmpSvc->>Audit: recordAccountCascadeClosed
+    end
+    EmpSvc-->>API: 204 No Content
+    API-->>Facade: deleteSuccess
+    Facade->>Detail: navigate back<br/>focus restored
+    Detail->>Admin: toast "Employee deleted"
+        </pre>
+      </div>
+
+      <div class="callout">
+        <strong>The audit trail outlives the deleted row.</strong>
+        <code>GET /api/employees/:id/audit</code> still resolves even though the row is
+        gone &mdash; audit entries are append-only and never depend on a live FK target.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §08 Close & reopen                                               -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 08 &middot; User flow</div>
+      <h2>Closing &amp; reopening an account</h2>
+
+      <p class="lead">
+        Status-flip flows demonstrate a non-trivial audit-narrative decision: a CLOSE
+        through the named endpoint produces a <code>CLOSE</code> audit action, but the same
+        status change via a generic PATCH produces an <code>UPDATE</code> with a diff. The
+        service layer makes the call.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+flowchart TB
+    Start([User clicks Close])
+    Confirm{Confirm dialog}
+    Cancel([User cancels])
+    Submit[User clicks Close account]
+    PatchOrDelete[/DELETE /api/accounts/:id/]
+    Service[AccountService.close]
+    UpdateRepo[Repository: status = CLOSED]
+    AuditClose[AuditService.recordAccountClosed<br/>action: CLOSE]
+    Done[Toast + CLOSED badge<br/>Edit/Close → Reopen]
+
+    Reopen([User clicks Reopen])
+    Patch[/PATCH /api/accounts/:id<br/>status: OPEN/]
+    PatchSvc[AccountService.patch]
+    StatusOnly{Only a status<br/>flip to OPEN?}
+    AuditReopen[recordAccountReopened<br/>action: REOPEN]
+    AuditUpdate[recordAccountUpdated<br/>action: UPDATE]
+    DoneReopen[Toast + OPEN badge]
+
+    Start --> Confirm
+    Confirm -->|cancel| Cancel
+    Confirm -->|confirm| Submit
+    Submit --> PatchOrDelete
+    PatchOrDelete --> Service
+    Service --> UpdateRepo
+    Service --> AuditClose
+    AuditClose --> Done
+
+    Reopen --> Patch
+    Patch --> PatchSvc
+    PatchSvc --> StatusOnly
+    StatusOnly -->|yes| AuditReopen
+    StatusOnly -->|no| AuditUpdate
+    AuditReopen --> DoneReopen
+    AuditUpdate --> DoneReopen
+
+    style AuditClose fill:#EEF2FF,stroke:#1f4ed8
+    style AuditReopen fill:#E8F5E8,stroke:#008A00
+    style AuditUpdate fill:#FFF6DA,stroke:#B45309
+        </pre>
+      </div>
+
+      <p class="caption">
+        <strong>The interesting branch.</strong>
+        <code>AccountService.patch()</code> checks whether the incoming patch is
+        <em>only</em> a status change. Multi-field PATCHes always produce
+        <code>UPDATE</code>, never the named narrative. This decision lives in the service
+        so the repository stays a dumb append target.
+      </p>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §09 State management                                             -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 09 &middot; Cross-cutting</div>
+      <h2>State management &mdash; NgRx + Signals split</h2>
+
+      <p class="lead">
+        NgRx remains the single source of truth. Signals appear at three specific seams at
+        the component layer.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+flowchart LR
+    subgraph Store["NgRx store (global state)"]
+        Action[Actions]
+        Reducer[Reducers]
+        Selector[Selectors]
+        Effect[Effects]
+    end
+
+    subgraph Bridge["Bridge layer"]
+        Facade["Facade<br/>(Observables)"]
+    end
+
+    subgraph Leaf["Leaf — component"]
+        toSig["toSignal()"]
+        sig["signal()<br/>local UI"]
+        comp["computed()<br/>derived"]
+        eff["effect()<br/>DOM side fx"]
+        Template["Template<br/>{{ items() }}"]
+    end
+
+    Action --> Reducer
+    Action --> Effect
+    Effect --> Action
+    Reducer --> Selector
+    Selector --> Facade
+    Facade --> toSig
+    toSig --> Template
+    sig --> Template
+    sig --> comp
+    toSig --> comp
+    comp --> Template
+    toSig --> eff
+    eff -.->|document.title| External([DOM])
+    Template -->|click| Facade
+    Facade --> Action
+
+    style Store fill:#FFF6DA,stroke:#B45309
+    style Bridge fill:#EEF2FF,stroke:#1f4ed8
+    style Leaf fill:#E8F5E8,stroke:#008A00
+        </pre>
+      </div>
+
+      <div class="callout">
+        <strong>The boundary.</strong> NgRx owns global state. The facade is the public
+        surface. Signals live only inside the component layer. Components dispatch
+        <em>into</em> the store via the facade; data flows <em>out</em> of the store back
+        via signals.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §10 Correlation id                                               -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 10 &middot; Cross-cutting</div>
+      <h2>Correlation-id end-to-end</h2>
+
+      <p class="lead">
+        Every request carries an <code>X-Correlation-Id</code> header so client logs,
+        server logs, and audit entries can be matched up.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    participant Client as Angular client
+    participant CidI as cid interceptor
+    participant Express as Express middleware
+    participant Logger as morgan logger
+    participant Ctrl as Controller
+    participant Svc as Service
+    participant Audit as AuditService
+    participant Logs as Server stdout
+
+    Client->>CidI: any HTTP request
+    CidI->>CidI: generate uuid<br/>(or crypto.randomUUID)
+    CidI->>Express: + X-Correlation-Id: abc-123
+    Express->>Express: echo header back<br/>attach req.correlationId
+    Express->>Logger: req with cid
+    Logger->>Logs: "POST 201 12ms - cid=abc-123"
+    Express->>Ctrl: route handler
+    Ctrl->>Svc: service.method(<br/>payload, { correlationId, actor })
+    Svc->>Audit: record* entries include cid
+        </pre>
+      </div>
+
+      <p class="caption">
+        <strong>Result.</strong> A user reports "the delete button didn't work" &rarr; pull
+        the cid from the browser console, grep server logs for that exact cid, see every
+        request/response in that conversation, find the matching audit entry.
+      </p>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §11 Audit recording                                              -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 11 &middot; Cross-cutting</div>
+      <h2>Audit recording pipeline</h2>
+
+      <p class="lead">
+        Every write in the service layer flows into one of six narrative paths. No-op
+        UPDATEs are dropped so the trail doesn&rsquo;t fill with noise.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+flowchart TB
+    Write([Any write in a service])
+    SnapBefore[Snapshot via findById]
+    DoWrite[repository write]
+    SnapAfter[Snapshot after]
+    Decide{Action type?}
+
+    Create[recordEmployeeCreated<br/>snapshot]
+    Delete[recordEmployeeDeleted<br/>snapshot pre-delete]
+    Update[recordEmployeeUpdated<br/>diff before vs after]
+    Close[recordAccountClosed]
+    Reopen[recordAccountReopened]
+    Cascade[recordAccountCascadeClosed<br/>+ reason]
+
+    NoChange{Diff result empty?}
+    Skip([Return null — no entry])
+
+    Compose[Compose entry:<br/>entryId · employeeId<br/>resource · action<br/>actor · correlationId<br/>timestamp]
+    Append[AuditRepository.append]
+    Done([Entry persists forever])
+
+    Write --> SnapBefore --> DoWrite --> SnapAfter --> Decide
+    Decide -->|create| Create
+    Decide -->|delete| Delete
+    Decide -->|update| Update
+    Decide -->|close| Close
+    Decide -->|reopen| Reopen
+    Decide -->|cascade| Cascade
+    Update --> NoChange
+    NoChange -->|yes| Skip
+    NoChange -->|no| Compose
+    Create --> Compose
+    Delete --> Compose
+    Close --> Compose
+    Reopen --> Compose
+    Cascade --> Compose
+    Compose --> Append --> Done
+
+    style Skip fill:#FBE7EB,stroke:#C7102E
+    style Done fill:#E8F5E8,stroke:#008A00
+        </pre>
+      </div>
+
+      <div class="callout">
+        <strong>The rule.</strong> No-op UPDATEs don&rsquo;t pollute the trail. Every other
+        action always produces an entry. This rule lives in the service, not the
+        controller, so any path that calls the service inherits it.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- §12 Data model                                                   -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Section 12 &middot; Structure</div>
+      <h2>Data model &mdash; entity relationships</h2>
+
+      <p class="lead">
+        Three entities. The audit trail is a child of both Employee and Account, but its
+        FKs are <em>nominal</em> &mdash; they survive deletion of the parent row by design.
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+erDiagram
+    EMPLOYEE ||--o{ ACCOUNT : owns
+    EMPLOYEE ||--o{ AUDIT_ENTRY : has_trail_of
+    ACCOUNT ||--o{ AUDIT_ENTRY : has_trail_of
+
+    EMPLOYEE {
+        string employeeId PK "UUID"
+        string firstName "2-60 chars"
+        string lastName "2-60 chars"
+        string email "unique"
+        string role "ADMIN|MANAGER|SUPPORT"
+        string status "ACTIVE|INACTIVE"
+        string createdAt
+        string updatedAt
+    }
+
+    ACCOUNT {
+        string accountId PK "UUID"
+        string employeeId FK "→ Employee"
+        string accountNumber "8-19 digits, unique"
+        string accountType "CHECKING|SAVINGS"
+        string currency "CAD|USD"
+        number balance "0 to MAX_BALANCE"
+        string status "OPEN|CLOSED"
+        string createdAt
+        string updatedAt
+    }
+
+    AUDIT_ENTRY {
+        string entryId PK "UUID"
+        string employeeId FK "outlives row"
+        string resource "Employee|Account"
+        string resourceId
+        string action "6 values"
+        string actor "currently admin"
+        string correlationId
+        string timestamp
+        json snapshot "CREATE / DELETE"
+        json changes "UPDATE diff"
+        string accountNumber "for Account"
+        string reason "for CASCADE_CLOSE"
+    }
+        </pre>
+      </div>
+
+      <p class="caption">
+        <strong>Key constraint not visible above.</strong>
+        <code>AUDIT_ENTRY.employeeId</code> is an FK in spirit only. When an employee is
+        hard-deleted, the audit entries persist by design &mdash; the trail outlives the
+        row. The FK column means &ldquo;this entry belongs to the audit trail named by this
+        employee id&rdquo;, not &ldquo;this entry has a live FK target&rdquo;.
+      </p>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- CLOSING                                                          -->
+    <!-- ================================================================ -->
+    <section class="page">
+      <div class="section-eyebrow">Closing</div>
+      <h2>What to take from this</h2>
+
+      <p class="lead">
+        Every diagram in this document describes a real piece of the codebase you can open
+        and point at. The system architecture matches <code>app.js</code> +
+        <code>app.config.ts</code>; the layered backend matches the folder layout under
+        <code>server/</code>; the request lifecycle matches what you see in the Network tab
+        when you click a button.
+      </p>
+
+      <p>
+        None of this is aspirational &mdash; it&rsquo;s all in the repo. Drawing it on a
+        whiteboard during the interview is a 60-second exercise <em>because</em> it was
+        drawn here first.
+      </p>
+
+      <div class="closing-quote">
+        &ldquo;The interviewer doesn&rsquo;t care how many lines of code I wrote, what
+        frameworks I used, or whether every test passes. They care whether I can stand at a
+        whiteboard, sketch the system, name the alternatives I rejected, point at three
+        specific things I&rsquo;d change today, and ask better questions than they expected.
+        The code is just the prop. The thinking is the show.&rdquo;
+      </div>
+
+      <h3>Companion documents</h3>
+      <table class="compact">
+        <tr>
+          <th>Doc</th>
+          <th>For</th>
+        </tr>
+        <tr>
+          <td><code>NGRX_GUIDE.md</code></td>
+          <td>Walking through the state-management story end to end</td>
+        </tr>
+        <tr>
+          <td><code>ACCESSIBILITY_AUDIT.md</code></td>
+          <td>What WCAG 2.1 AA looks like in this codebase, concretely</td>
+        </tr>
+        <tr>
+          <td><code>MAX_PAGE_SIZE_CLAMP.md</code></td>
+          <td>One pragmatic security patch with full rationale</td>
+        </tr>
+        <tr>
+          <td><code>INTERVIEW_REFLECTION.md</code></td>
+          <td>Five-question pre-interview exercise drilled to the speakable answer</td>
+        </tr>
+        <tr>
+          <td><code>INTERVIEW_PLAYBOOK.md</code></td>
+          <td>Full ten-step interview preparation with role-tailoring matrix</td>
+        </tr>
+      </table>
+
+      <div class="closing-footer">
+        Banking Admin Portal &middot; Architecture &amp; Workflow Reference &middot;
+        Authored by Piyush Garg
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- Mermaid runtime                                                  -->
+    <!-- ================================================================ -->
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          fontFamily: 'Open Sans, sans-serif',
+          fontSize: '14px',
+          primaryColor: '#E8F5E8',
+          primaryTextColor: '#1C1C1C',
+          primaryBorderColor: '#008A00',
+          lineColor: '#555E66',
+          secondaryColor: '#EEF2FF',
+          tertiaryColor: '#FFF6DA',
+          actorBkg: '#E8F5E8',
+          actorBorder: '#008A00',
+          actorTextColor: '#1C1C1C',
+          actorLineColor: '#555E66',
+          signalColor: '#1C1C1C',
+          signalTextColor: '#1C1C1C',
+          labelBoxBkgColor: '#FFF6DA',
+          labelBoxBorderColor: '#B45309',
+          labelTextColor: '#1C1C1C',
+          noteBkgColor: '#FFF6DA',
+          noteBorderColor: '#B45309',
+          noteTextColor: '#1C1C1C',
+          activationBkgColor: '#E8F5E8',
+          activationBorderColor: '#008A00',
+          sequenceNumberColor: '#FFFFFF'
+        },
+        flowchart: {
+          curve: 'basis',
+          padding: 12,
+          htmlLabels: true
+        },
+        sequence: {
+          actorMargin: 50,
+          messageAlign: 'center',
+          mirrorActors: false,
+          bottomMarginAdj: 1,
+          useMaxWidth: true,
+          rightAngles: false,
+          showSequenceNumbers: false
+        },
+        er: {
+          useMaxWidth: true,
+          entityPadding: 16,
+          stroke: '#008A00',
+          fill: '#E8F5E8',
+          fontSize: 13
+        }
+      });
+    </script>
+  </body>
+</html>

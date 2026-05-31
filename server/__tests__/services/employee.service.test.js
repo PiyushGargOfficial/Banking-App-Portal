@@ -326,3 +326,52 @@ describe('EmployeeService.list - filters + sort + pagination', () => {
     expect(page1.size).toBe(2);
   });
 });
+
+describe('EmployeeService.list - MAX_PAGE_SIZE clamp', () => {
+  // Read the clamp from config so the test stays correct if the value
+  // is ever tuned. Importing inside the describe keeps the rest of the
+  // suite unaware of the limit.
+  const { MAX_PAGE_SIZE } = require('../../config');
+
+  beforeEach(() => {
+    // Seed (MAX_PAGE_SIZE + 25) employees so we have enough to prove
+    // the clamp is doing something meaningful. Names need to be unique
+    // and sortable to exercise the rest of the list code path normally.
+    for (let i = 0; i < MAX_PAGE_SIZE + 25; i++) {
+      store.employees.push(makeEmployee({
+        employeeId: `emp-${String(i).padStart(4, '0')}`,
+        firstName: 'User',
+        lastName: `Number-${String(i).padStart(4, '0')}`,
+        email: `user${i}@x.io`
+      }));
+    }
+  });
+
+  it('returns at most MAX_PAGE_SIZE items when size=999999 is requested', () => {
+    const { items } = EmployeeService.list({ size: 999999 });
+
+    expect(items.length).toBeLessThanOrEqual(MAX_PAGE_SIZE);
+    expect(items).toHaveLength(MAX_PAGE_SIZE);
+  });
+
+  it('reports the clamped size in the response so the caller sees the cap', () => {
+    const { size } = EmployeeService.list({ size: 999999 });
+
+    expect(size).toBe(MAX_PAGE_SIZE);
+  });
+
+  it('still honours the requested size when it sits under the clamp', () => {
+    const { items, size } = EmployeeService.list({ size: 50 });
+
+    expect(items).toHaveLength(50);
+    expect(size).toBe(50);
+  });
+
+  it('reports the full total separately so callers can paginate further', () => {
+    // The clamp limits one page, not the population. `total` must still
+    // reflect every matching row so the client knows pagination remains.
+    const { total } = EmployeeService.list({ size: 999999 });
+
+    expect(total).toBe(MAX_PAGE_SIZE + 25);
+  });
+});

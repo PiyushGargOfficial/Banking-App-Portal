@@ -30,23 +30,30 @@
     <div class="table-scroll" data-cy="employee-table">
       <table class="table">
         <thead>
+          <!--
+            aria-sort on each <th> tells screen readers which column is currently
+            sorted and in which direction. Without this, the only sort indicator
+            is the visual "v" / "^" arrow text - meaningless to a non-sighted
+            user. The button inside the th remains the keyboard target for
+            toggling the sort.
+          -->
           <tr>
-            <th>
+            <th [attr.aria-sort]="ariaSort('lastName')">
               <button class="th-button" type="button" (click)="onSort('lastName')">
                 Name{{ sortIndicator('lastName') }}
               </button>
             </th>
-            <th class="hidden-portrait">
+            <th class="hidden-portrait" [attr.aria-sort]="ariaSort('email')">
               <button class="th-button" type="button" (click)="onSort('email')">
                 Email{{ sortIndicator('email') }}
               </button>
             </th>
-            <th>
+            <th [attr.aria-sort]="ariaSort('role')">
               <button class="th-button" type="button" (click)="onSort('role')">
                 Role{{ sortIndicator('role') }}
               </button>
             </th>
-            <th>
+            <th [attr.aria-sort]="ariaSort('status')">
               <button class="th-button" type="button" (click)="onSort('status')">
                 Status{{ sortIndicator('status') }}
               </button>

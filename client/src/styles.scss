@@ -455,6 +455,30 @@ p {
 }
 
 /* Forms ---------------------------------------------------------------------- */
+
+/* Semantic grouping wrapper. <fieldset> + <legend> is the WAI-ARIA-blessed way
+   to group related form controls - screen readers announce the legend once
+   when focus first enters the group, giving users context without forcing
+   them to re-read every label. We restyle the default browser borders away
+   so the visual layout stays clean. */
+.form-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0; /* prevents fieldset from forcing its grid wider than viewport */
+
+  > legend {
+    display: block;
+    margin-bottom: var(--space-3);
+    padding: 0;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -19,6 +19,7 @@
  * from `req.correlationId`.
  */
 const { v4: uuid } = require('uuid');
+const { MAX_PAGE_SIZE } = require('../config');
 const EmployeeRepository = require('../repositories/employee.repository');
 const AccountRepository = require('../repositories/account.repository');
 const AuditService = require('./audit.service');
@@ -96,7 +97,11 @@ const EmployeeService = {
     });
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const sizeNum = Math.max(1, parseInt(size, 10) || 10);
+    // Clamp size to MAX_PAGE_SIZE so a caller asking for ?size=999999 can't
+    // force the server to slice + serialise the entire collection. The
+    // response's `size` field reflects the clamped value, so the client can
+    // see they got fewer items than requested.
+    const sizeNum = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(size, 10) || 10));
     const start = (pageNum - 1) * sizeNum;
     return {
       items: result.slice(start, start + sizeNum),

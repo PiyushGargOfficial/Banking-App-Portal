@@ -29,5 +29,17 @@ module.exports = {
   /** Allowed CORS origin(s) - a string ("*") or an explicit allow-list array. */
   CORS_ORIGIN,
   /** Upper bound for any single account balance. */
-  MAX_BALANCE: 9_999_999_999.99
+  MAX_BALANCE: 9_999_999_999.99,
+  /**
+   * Hard ceiling for `?size=` on any paginated list endpoint.
+   *
+   * Defends against cheap denial-of-service via huge responses: without a
+   * clamp, an attacker (or a careless integration) can ask for `?size=999999`
+   * and force the server to slice and serialise the whole collection.
+   *
+   * 100 is comfortably above the UI's largest page-size select (25) so
+   * legitimate consumers never notice, and far below the point at which
+   * JSON serialisation starts costing real CPU + memory.
+   */
+  MAX_PAGE_SIZE: 100
 };
