@@ -51,10 +51,10 @@ function baseEntry({ employeeId, resource, resourceId, action, context }) {
   const { actor, correlationId } = ctx(context);
   return {
     entryId: uuid(),
-    employeeId,                // FK - which employee this entry belongs to
-    resource,                  // 'Employee' | 'Account'
-    resourceId,                // employeeId or accountId
-    action,                    // CREATE | UPDATE | DELETE | CLOSE | REOPEN | CASCADE_CLOSE
+    employeeId, // FK - which employee this entry belongs to
+    resource, // 'Employee' | 'Account'
+    resourceId, // employeeId or accountId
+    action, // CREATE | UPDATE | DELETE | CLOSE | REOPEN | CASCADE_CLOSE
     actor,
     correlationId,
     timestamp: nowIso()

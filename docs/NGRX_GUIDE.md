@@ -24,7 +24,7 @@
 
 Imagine your app is a kitchen. Components are the customers who want food. Without NgRx, every customer goes into the kitchen themselves, opens the fridge, fries an egg, plates it, and brings it back. This works for one customer but gets chaotic with twenty — the fridge runs empty, two people are using the same pan, nobody knows who took the last bread roll.
 
-**NgRx is the restaurant model.** Customers (components) write a *ticket* (action) describing what they want. The ticket goes to the kitchen (store + effects). The kitchen does the work, updates a single shared menu board (state), and customers just *look at the board* (selectors) to see what's available. Nobody touches the fridge directly.
+**NgRx is the restaurant model.** Customers (components) write a _ticket_ (action) describing what they want. The ticket goes to the kitchen (store + effects). The kitchen does the work, updates a single shared menu board (state), and customers just _look at the board_ (selectors) to see what's available. Nobody touches the fridge directly.
 
 The win: every change to state is visible, ordered, and replayable. Bugs become "look at the tickets in order" instead of "good luck finding which component mutated this."
 
@@ -56,7 +56,7 @@ export const EmployeePageActions = createActionGroup({
   source: 'Employee/Page',
   events: {
     'Load List': props<{ query: EmployeeQuery }>(),
-    'Delete':    props<{ id: string }>(),
+    Delete: props<{ id: string }>()
     // ...
   }
 });
@@ -65,8 +65,8 @@ export const EmployeeApiActions = createActionGroup({
   source: 'Employee/API',
   events: {
     'Load List Success': props<{ response: EmployeeListResponse }>(),
-    'Delete Success':    props<{ id: string }>(),
-    'Delete Failure':    props<{ error: ApiError }>(),
+    'Delete Success': props<{ id: string }>(),
+    'Delete Failure': props<{ error: ApiError }>()
     // ...
   }
 });
@@ -77,7 +77,7 @@ Two groups, two intents:
 - **`EmployeePageActions`** = "the user did something" (clicked delete, typed in search, hit submit)
 - **`EmployeeApiActions`** = "the server replied" (success or failure)
 
-When you call `EmployeePageActions.delete({ id: '42' })`, that's just creating an object like `{ type: '[Employee/Page] Delete', id: '42' }`. It hasn't *done* anything yet — it's just a description.
+When you call `EmployeePageActions.delete({ id: '42' })`, that's just creating an object like `{ type: '[Employee/Page] Delete', id: '42' }`. It hasn't _done_ anything yet — it's just a description.
 
 The Redux DevTools browser extension shows a timeline of every action firing. That timeline is gold for debugging.
 
@@ -85,16 +85,16 @@ The Redux DevTools browser extension shows a timeline of every action firing. Th
 
 ## 4. Reducer — the menu board + update rules
 
-`employee.reducer.ts` holds the *shape* of employee state and rules for how each action changes it.
+`employee.reducer.ts` holds the _shape_ of employee state and rules for how each action changes it.
 
 ```ts
 export interface EmployeeState {
-  items: Employee[];           // the current list
-  total: number;               // for pagination
-  selected: Employee | null;   // the one open in detail view
-  loadingList: boolean;        // is a list fetch in flight?
-  saving: boolean;             // is a create/update in flight?
-  error: ApiError | null;      // last error, for the form summary
+  items: Employee[]; // the current list
+  total: number; // for pagination
+  selected: Employee | null; // the one open in detail view
+  loadingList: boolean; // is a list fetch in flight?
+  saving: boolean; // is a create/update in flight?
+  error: ApiError | null; // last error, for the form summary
   // ... and a few more
 }
 ```
@@ -117,7 +117,7 @@ on(EmployeeApiActions.loadListSuccess, (state, { response }) => ({
 })),
 ```
 
-Notice the pattern: we always return a *new* object with `...state` spread first. Never `state.items.push(...)` — that would mutate.
+Notice the pattern: we always return a _new_ object with `...state` spread first. Never `state.items.push(...)` — that would mutate.
 
 ---
 
@@ -135,7 +135,7 @@ export const selectTotalPages  = createSelector(
 );
 ```
 
-The `createSelector` for `selectTotalPages` is doing something smart: it only re-runs the `Math.ceil` calculation when `total` *or* `size` actually changes. If a different part of state updates, it returns the cached previous result. That memoisation is what keeps NgRx fast.
+The `createSelector` for `selectTotalPages` is doing something smart: it only re-runs the `Math.ceil` calculation when `total` _or_ `size` actually changes. If a different part of state updates, it returns the cached previous result. That memoisation is what keeps NgRx fast.
 
 ---
 
@@ -149,9 +149,10 @@ An effect is "when I see action X, do some async work, then dispatch action Y."
 export const loadEmployeeList$ = createEffect(
   (actions$ = inject(Actions), api = inject(EmployeeApiService)) =>
     actions$.pipe(
-      ofType(EmployeePageActions.loadList),            // listen for this
+      ofType(EmployeePageActions.loadList), // listen for this
       exhaustMap(({ query }) =>
-        api.list(query).pipe(                          // do HTTP
+        api.list(query).pipe(
+          // do HTTP
           map((response) => EmployeeApiActions.loadListSuccess({ response })),
           catchError((error) => of(EmployeeApiActions.loadListFailure({ error })))
         )
@@ -170,20 +171,19 @@ That success/failure action then hits the reducer, which updates `items` and `lo
 Some effects don't dispatch anything — they just react. Example:
 
 ```ts
-export const deleteEmployeeSuccessFlow$ = createEffect(
-  (actions$, router, notify, store) =>
-    actions$.pipe(
-      ofType(EmployeeApiActions.deleteSuccess),
-      tap(() => {
-        notify.success('Employee deleted');     // show a toast
-        router.navigate(['/employees']);        // go back to the list
-      }),
-      map(([, lastQuery]) => EmployeePageActions.loadList({ query: lastQuery }))
-    )
+export const deleteEmployeeSuccessFlow$ = createEffect((actions$, router, notify, store) =>
+  actions$.pipe(
+    ofType(EmployeeApiActions.deleteSuccess),
+    tap(() => {
+      notify.success('Employee deleted'); // show a toast
+      router.navigate(['/employees']); // go back to the list
+    }),
+    map(([, lastQuery]) => EmployeePageActions.loadList({ query: lastQuery }))
+  )
 );
 ```
 
-This one toasts, navigates, *and* re-fires the list query — all from a single trigger action.
+This one toasts, navigates, _and_ re-fires the list query — all from a single trigger action.
 
 ---
 
@@ -196,9 +196,9 @@ This one toasts, navigates, *and* re-fires the list query — all from a single 
 export class EmployeeFacade {
   private readonly store = inject(Store);
 
-  readonly items$       = this.store.select(selectItems);       // observable streams
+  readonly items$ = this.store.select(selectItems); // observable streams
   readonly loadingList$ = this.store.select(selectLoadingList);
-  readonly saving$      = this.store.select(selectSaving);
+  readonly saving$ = this.store.select(selectSaving);
 
   loadList(query: EmployeeQuery): void {
     this.store.dispatch(EmployeePageActions.loadList({ query }));
@@ -320,4 +320,4 @@ That sentence is 80% of NgRx. The other 20% is learning the RxJS operators (`swi
 
 ---
 
-*Banking Admin Portal — internal documentation.*
+_Banking Admin Portal — internal documentation._

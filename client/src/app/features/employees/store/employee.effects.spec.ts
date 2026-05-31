@@ -30,7 +30,13 @@ describe('loadEmployeeList$ effect', () => {
   beforeEach(() => {
     actions$ = new ReplaySubject<Action>(1);
     api = jasmine.createSpyObj<EmployeeApiService>('EmployeeApiService', [
-      'list', 'getById', 'create', 'update', 'patchStatus', 'delete', 'isEmailAvailable'
+      'list',
+      'getById',
+      'create',
+      'update',
+      'patchStatus',
+      'delete',
+      'isEmailAvailable'
     ]);
 
     TestBed.configureTestingModule({

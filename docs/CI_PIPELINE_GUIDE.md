@@ -1,0 +1,254 @@
+# Continuous Integration (CI) in the Banking Admin Portal
+
+**A beginner-friendly walkthrough of the automated checks that run every time you push code.**
+
+---
+
+## Table of contents
+
+1. [The big idea](#1-the-big-idea)
+2. [What is GitHub Actions?](#2-what-is-github-actions)
+3. [Where the pipeline lives](#3-where-the-pipeline-lives)
+4. [Reading the file top to bottom](#4-reading-the-file-top-to-bottom)
+5. [The two jobs, explained](#5-the-two-jobs-explained)
+6. [What happens when you open a PR](#6-what-happens-when-you-open-a-pr)
+7. [How to read a failed run](#7-how-to-read-a-failed-run)
+8. [Running the same checks on your own machine](#8-running-the-same-checks-on-your-own-machine)
+9. [Common questions](#9-common-questions)
+10. [One paragraph to remember](#10-one-paragraph-to-remember)
+
+---
+
+## 1. The big idea
+
+Imagine a bakery where anyone can add an ingredient to the shared dough. Most people are careful, but every so often someone tips in salt instead of sugar. By the time the bread comes out of the oven, it's too late — the whole loaf is ruined, and you have to guess _who_ added the bad ingredient and _when_.
+
+**CI is the taste-tester standing at the mixing bowl.** Every time someone adds an ingredient (pushes code), the taster immediately runs a fixed checklist: _Does it still taste right? Does the dough still rise?_ If anything is off, they raise their hand **before** the loaf goes in the oven. Nobody has to remember to call the taster — they're always there, automatically.
+
+In software terms: **CI (Continuous Integration) runs your tests and build automatically on every push**, so broken code gets caught the moment it arrives — not days later when someone else trips over it.
+
+The win: "it works on my machine" stops being good enough. The code has to work on a clean, neutral machine too, every single time.
+
+---
+
+## 2. What is GitHub Actions?
+
+**GitHub Actions** is the free robot that GitHub gives every repository. You write a recipe (a YAML file) describing _what to run_ and _when_, and GitHub spins up a fresh, empty computer in the cloud to run it for you.
+
+A few words you'll see everywhere:
+
+| Term               | What it means in plain English                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| **Workflow**       | The whole recipe — one `.yml` file. Ours is called `CI`.                                                       |
+| **Trigger** (`on`) | The "when." E.g. "run this every time someone pushes to `master`."                                             |
+| **Job**            | A self-contained task that runs on its own fresh machine. We have two.                                         |
+| **Step**           | One instruction inside a job (e.g. "install dependencies").                                                    |
+| **Runner**         | The throwaway cloud computer GitHub rents you for a few minutes. Ours is `ubuntu-latest` (a Linux machine).    |
+| **Action**         | A pre-built reusable step someone else wrote, e.g. `actions/checkout`. You "use" it instead of reinventing it. |
+
+The key mental model: **the runner starts completely empty every time.** No code, no Node.js, no dependencies. The workflow has to set up everything from scratch. That's a feature, not a bug — it proves your project builds from zero, not just on your already-configured laptop.
+
+---
+
+## 3. Where the pipeline lives
+
+GitHub looks in one specific folder for workflows:
+
+```
+.github/
+└── workflows/
+    └── ci.yml      ← our pipeline
+```
+
+The path is a strict rule — GitHub only reads `.github/workflows/*.yml`. Put the file anywhere else and nothing happens. The folder name starts with a dot, so it's hidden in most file explorers (but your editor and `git` see it fine).
+
+---
+
+## 4. Reading the file top to bottom
+
+Here's the whole file, in chunks, with a translation under each.
+
+### The name and the trigger
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+```
+
+- `name: CI` — the label you'll see in the GitHub "Actions" tab.
+- `on:` — the **when**. This says: run this workflow whenever code is **pushed to `master`**, _and_ whenever someone opens or updates a **pull request targeting `master`**.
+- Why both? `pull_request` catches problems _before_ they merge (the important one). `push` re-confirms `master` is healthy _after_ a merge. Belt and suspenders.
+
+### The concurrency block
+
+```yaml
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+Picture pushing three quick fixes in a row. Without this, GitHub starts three full runs and you wait for all three — even though only the newest one matters. This block says **"if a newer run starts on the same branch, cancel the older one that's still going."** It saves time and free CI minutes. `${{ github.ref }}` is just "the branch this run is for."
+
+### The jobs
+
+```yaml
+jobs:
+  server:
+    name: Server tests
+    runs-on: ubuntu-latest
+    steps: ...
+  client:
+    name: Client tests & build
+    runs-on: ubuntu-latest
+    steps: ...
+```
+
+We define **two jobs**: `server` and `client`. Each gets its **own fresh Linux machine** and they run **at the same time** (in parallel). More on each below.
+
+---
+
+## 5. The two jobs, explained
+
+Both jobs follow the same four-beat rhythm: **check out the code → install Node → install dependencies → run the checks.** Only the last beat differs.
+
+### Beat 1 — Get the code
+
+```yaml
+- uses: actions/checkout@v4
+```
+
+The runner starts empty, remember? This pre-built action **downloads your repository onto the machine.** `@v4` pins the version so it doesn't change under us.
+
+### Beat 2 — Install Node.js (with caching)
+
+```yaml
+- name: Set up Node.js
+  uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+    cache: npm
+    cache-dependency-path: server/package-lock.json # (client/ for the other job)
+```
+
+- Installs **Node.js 20** — matching the `"node": ">=20.11.0"` requirement in our `package.json` files. CI should run the same Node version your code expects.
+- `cache: npm` — the clever bit. Downloading npm packages from scratch is slow. The first run saves a copy of the downloaded packages; later runs **reuse that cache** and finish much faster. `cache-dependency-path` tells it _which_ lockfile to key the cache on, so the cache refreshes only when dependencies actually change.
+
+### Beat 3 — Install dependencies
+
+```yaml
+- name: Install dependencies
+  working-directory: server # (or client)
+  run: npm ci
+```
+
+- `working-directory` — this project has separate `server/` and `client/` folders, each with its own `package.json`. This tells the step "run inside this folder."
+- `npm ci` — **not** `npm install`. `ci` stands for "clean install." It deletes any existing `node_modules` and installs **exactly** what `package-lock.json` specifies, no surprises. It's the install command built for automation: faster and strictly reproducible. (If the lockfile and `package.json` disagree, `npm ci` fails loudly instead of silently "fixing" things — which is what you want on CI.)
+
+### Beat 4 — The actual checks (this is where the jobs differ)
+
+**Server job:**
+
+```yaml
+- name: Run tests
+  working-directory: server
+  run: npm run test:coverage
+```
+
+Runs the server's [Jest](https://jestjs.io/) test suite (`server/__tests__/`) with a coverage report. If any test fails, the job goes red.
+
+**Client job:**
+
+```yaml
+- name: Run unit tests (headless Chrome)
+  working-directory: client
+  run: npm run test:ci
+
+- name: Build
+  working-directory: client
+  run: npm run build
+```
+
+Two checks here:
+
+1. `test:ci` runs the Angular unit tests (`*.spec.ts`) using **headless Chrome** — a real Chrome browser with no visible window, since a cloud machine has no screen. The Ubuntu runner already has Chrome installed, so this just works.
+2. `build` compiles the Angular app for production. **A passing test suite doesn't guarantee the app even compiles**, so we check the build separately. A broken import or type error gets caught here.
+
+> **Why split into two jobs instead of one big one?**
+> Three reasons. (1) **Speed** — they run in parallel, so total time ≈ the slower of the two, not the sum. (2) **Clear blame** — if the server job is green and the client job is red, you instantly know _where_ the problem is. (3) **Independent caching** — each side caches its own dependencies.
+
+---
+
+## 6. What happens when you open a PR
+
+Here's the everyday workflow once this is live:
+
+1. You create a branch, make changes, and push.
+2. You open a Pull Request into `master`.
+3. **GitHub automatically kicks off the CI workflow.** You'll see a yellow "● Some checks haven't completed yet" box appear in the PR.
+4. A few minutes later it turns into either:
+   - ✅ **green** — all checks passed. Safe to review and merge.
+   - ❌ **red** — something failed. The PR shows exactly which job, and you can click in to see why.
+5. (Optional, recommended) The repo can be configured with **branch protection** so a PR _cannot be merged while CI is red_. That's the whole point — the robot becomes a gate, not just a suggestion.
+
+This is the "#1 missing signal" a reviewer looks for: it proves you **gate merges on tests** instead of merging on hope.
+
+---
+
+## 7. How to read a failed run
+
+Don't panic at a red ❌. Here's the drill:
+
+1. Go to the **Actions** tab on GitHub (or click "Details" next to the failed check in your PR).
+2. Click the failed **run**, then the failed **job** (e.g. "Client tests & build").
+3. You'll see the list of steps. The failed one has a red ❌. **Click it to expand the logs.**
+4. Scroll to the bottom of that step's output — the error is almost always near the end. CI logs read just like your own terminal output.
+5. Fix the problem locally, push again. CI re-runs automatically. Repeat until green.
+
+Most CI failures are honest: a test you broke, a type error, or a dependency that didn't install. The log tells you which.
+
+---
+
+## 8. Running the same checks on your own machine
+
+The golden rule: **you should be able to run everything CI runs, locally, before you push.** No surprises that way. From the project root:
+
+```bash
+# Server tests (what the "server" job runs)
+npm run test:server
+
+# Client tests + build (what the "client" job runs)
+npm test
+npm --prefix client run build
+
+# Or run both test suites in one go:
+npm run test:all
+```
+
+If those pass on your machine, CI will almost certainly pass too. If you only remember one command, make it `npm run test:all` before every push.
+
+---
+
+## 9. Common questions
+
+**Q: Does this cost money?**
+For public repositories, GitHub Actions is free. For private ones you get a generous monthly allowance of minutes. The `concurrency` block and caching we added keep usage low.
+
+**Q: I pushed but nothing ran. Why?**
+Check three things: (1) the file is at exactly `.github/workflows/ci.yml`, (2) the YAML is valid (indentation matters — spaces, never tabs), and (3) you pushed to `master` or opened a PR _into_ `master`. Pushing to a random branch with no PR won't trigger it, by design.
+
+**Q: Why is there no "lint" step?**
+A linter (like ESLint) checks code _style_ and catches likely-bug patterns. This project doesn't have a lint setup configured yet, so adding a lint step would fail instantly on a missing command. It's a great **next** improvement — set up ESLint, add a `lint` script, then add a step here that runs it.
+
+**Q: Can I add more checks later?**
+Absolutely. The end-to-end (Cypress) tests, a lint step, or a security scan would each be a new step or job. The structure is built to grow.
+
+---
+
+## 10. One paragraph to remember
+
+**CI is an always-on robot that runs our tests and build on a clean cloud machine every time code is pushed to `master` or proposed in a pull request.** The recipe lives in `.github/workflows/ci.yml` and has two parallel jobs: one installs and tests the **server** (Jest), the other tests and builds the **client** (Angular unit tests in headless Chrome, then a production build). If anything fails, the PR turns red and you fix it before merging. The whole point is to catch broken code at the door — automatically, every time, on a neutral machine — so "it works on my laptop" is never the last word.

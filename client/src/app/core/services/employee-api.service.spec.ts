@@ -19,11 +19,7 @@ describe('EmployeeApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        EmployeeApiService
-      ]
+      providers: [provideHttpClient(), provideHttpClientTesting(), EmployeeApiService]
     });
     service = TestBed.inject(EmployeeApiService);
     http = TestBed.inject(HttpTestingController);
@@ -48,7 +44,11 @@ describe('EmployeeApiService', () => {
 
   it('creates an employee via POST', () => {
     const payload: EmployeeUpsert = {
-      firstName: 'Jane', lastName: 'Doe', email: 'jane@x.io', role: 'MANAGER', status: 'ACTIVE'
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@x.io',
+      role: 'MANAGER',
+      status: 'ACTIVE'
     };
 
     service.create(payload).subscribe((emp) => expect(emp).toEqual(sample));

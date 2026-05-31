@@ -30,7 +30,10 @@ export class AccountApiService {
   }
 
   /** PUT full replace (used by the edit-account form). */
-  update(accountId: string, payload: Omit<Account, 'accountId' | 'employeeId' | 'accountNumber' | 'createdAt' | 'updatedAt'>): Observable<Account> {
+  update(
+    accountId: string,
+    payload: Omit<Account, 'accountId' | 'employeeId' | 'accountNumber' | 'createdAt' | 'updatedAt'>
+  ): Observable<Account> {
     return this.http.put<Account>(`${this.base}/accounts/${accountId}`, payload);
   }
 

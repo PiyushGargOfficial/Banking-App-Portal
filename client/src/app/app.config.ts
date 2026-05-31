@@ -32,10 +32,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'top', anchorScrolling: 'enabled' })
     ),
 
-    provideHttpClient(
-      withFetch(),
-      withInterceptors([correlationIdInterceptor, errorInterceptor])
-    ),
+    provideHttpClient(withFetch(), withInterceptors([correlationIdInterceptor, errorInterceptor])),
 
     // NgRx store + per-feature slices. The `router` reducer is registered as
     // the root state slice; the rest are feature slices loaded eagerly so

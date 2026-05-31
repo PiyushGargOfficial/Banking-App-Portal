@@ -35,11 +35,13 @@ describe('Audit log flow', () => {
 
     cy.dataCy('audit-refresh').click();
 
-    cy.dataCy('audit-entry').first().within(() => {
-      cy.dataCy('audit-action').should('contain.text', 'UPDATE');
-      cy.contains('Employee').should('be.visible');
-      cy.contains('status').should('be.visible');
-    });
+    cy.dataCy('audit-entry')
+      .first()
+      .within(() => {
+        cy.dataCy('audit-action').should('contain.text', 'UPDATE');
+        cy.contains('Employee').should('be.visible');
+        cy.contains('status').should('be.visible');
+      });
 
     // Restore initial state so the next test starts from a known position.
     cy.dataCy('toggle-status').click();
@@ -57,11 +59,13 @@ describe('Audit log flow', () => {
     cy.dataCy('audit-refresh').click();
 
     const last4 = acctNumber.slice(-4);
-    cy.dataCy('audit-entry').first().within(() => {
-      cy.dataCy('audit-action').should('contain.text', 'CREATE');
-      cy.contains('Account').should('be.visible');
-      cy.contains(last4).should('be.visible');
-    });
+    cy.dataCy('audit-entry')
+      .first()
+      .within(() => {
+        cy.dataCy('audit-action').should('contain.text', 'CREATE');
+        cy.contains('Account').should('be.visible');
+        cy.contains(last4).should('be.visible');
+      });
   });
 
   it('records a CLOSE entry when an account is closed (not a status UPDATE)', () => {
@@ -86,13 +90,15 @@ describe('Audit log flow', () => {
 
     cy.dataCy('audit-refresh').click();
 
-    cy.dataCy('audit-entry').first().within(() => {
-      // Important: the close path produces a CLOSE entry (the dedicated
-      // narrative), NOT a generic UPDATE with a status diff. This is the
-      // whole point of having named-action audit entries.
-      cy.dataCy('audit-action').should('contain.text', 'CLOSE');
-      cy.contains(last4).should('be.visible');
-    });
+    cy.dataCy('audit-entry')
+      .first()
+      .within(() => {
+        // Important: the close path produces a CLOSE entry (the dedicated
+        // narrative), NOT a generic UPDATE with a status diff. This is the
+        // whole point of having named-action audit entries.
+        cy.dataCy('audit-action').should('contain.text', 'CLOSE');
+        cy.contains(last4).should('be.visible');
+      });
   });
 
   it('records a REOPEN entry when a closed account is reopened', () => {
@@ -121,10 +127,12 @@ describe('Audit log flow', () => {
 
     cy.dataCy('audit-refresh').click();
 
-    cy.dataCy('audit-entry').first().within(() => {
-      cy.dataCy('audit-action').should('contain.text', 'REOPEN');
-      cy.contains(last4).should('be.visible');
-    });
+    cy.dataCy('audit-entry')
+      .first()
+      .within(() => {
+        cy.dataCy('audit-action').should('contain.text', 'REOPEN');
+        cy.contains(last4).should('be.visible');
+      });
   });
 
   it('shows actor + correlation id in the entry footer', () => {
@@ -133,10 +141,12 @@ describe('Audit log flow', () => {
     cy.dataCy('toast').should('contain.text', 'Employee marked');
     cy.dataCy('audit-refresh').click();
 
-    cy.dataCy('audit-entry').first().within(() => {
-      cy.contains('admin').should('be.visible');         // actor
-      cy.contains('cid:').should('be.visible');          // cid label
-    });
+    cy.dataCy('audit-entry')
+      .first()
+      .within(() => {
+        cy.contains('admin').should('be.visible'); // actor
+        cy.contains('cid:').should('be.visible'); // cid label
+      });
 
     // Restore initial state.
     cy.dataCy('toggle-status').click();

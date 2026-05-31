@@ -1,0 +1,127 @@
+# Fix: "Edit Employee" form stuck on "checking availability…"
+
+## Summary
+
+On the **Edit Employee** form, changing the email address left the form stuck:
+the "checking availability…" hint stayed visible and the **Save changes** button
+stayed disabled. Clicking out of the email field and back in immediately cleared
+the hint and re-enabled the button.
+
+This was an **OnPush change-detection** problem, not a validation-logic bug. The
+async email-availability check _was_ completing correctly — Angular's view simply
+wasn't being told to re-render when it did.
+
+## Symptom
+
+1. Open `/employees/:id/edit`.
+2. Change the email address and blur the field.
+3. "checking availability…" appears next to the **Email** label and **Save
+   changes** is disabled.
+4. The hint never clears and the button never re-enables on its own.
+5. Clicking back into the email field (or anywhere that fires a DOM event)
+   instantly clears the hint and enables the button.
+
+## Root cause
+
+The component uses `ChangeDetectionStrategy.OnPush`:
+
+`client/src/app/features/employees/pages/employee-form/employee-form.component.ts`
+
+```ts
+@Component({
+  selector: 'app-employee-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  // ...
+})
+```
+
+The template reads the control's `pending` state **directly** (not through an
+async pipe) to drive both the hint and the Save button:
+
+`client/src/app/features/employees/pages/employee-form/employee-form.component.html`
+
+```html
+<!-- hint -->
+@if (form.controls.email.pending) {
+<span class="text-muted">checking availability...</span>
+}
+
+<!-- submit button -->
+<button type="submit" [disabled]="form.pending || (saving$ | async)">…</button>
+```
+
+The async `uniqueEmailValidator` performs an HTTP call. When it **resolves**, it
+flips `email.pending` from `true` → `false` inside an async callback.
+
+Under OnPush, the view re-renders only when one of these happens:
+
+- an `@Input` reference changes,
+- an async pipe the template subscribes to emits,
+- a template-bound DOM event fires (click, focus, blur, …), or
+- `ChangeDetectorRef.markForCheck()` is called.
+
+The validator resolving does **none** of these. So OnPush never re-renders, and
+the template keeps showing the stale `pending = true` state. Refocusing the field
+fires a DOM event, which incidentally triggers change detection, Angular re-reads
+`form.pending` (now `false`), and the UI catches up — which is exactly the
+observed behavior.
+
+## Fix
+
+Notify OnPush when the form's validation status settles by subscribing to
+`form.statusChanges` and calling `markForCheck()`.
+
+`client/src/app/features/employees/pages/employee-form/employee-form.component.ts`
+
+```ts
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject
+} from '@angular/core';
+
+export class EmployeeFormComponent implements OnInit, OnDestroy {
+  private readonly cdr = inject(ChangeDetectorRef);
+  // ...
+
+  ngOnInit(): void {
+    // With OnPush, the async unique-email validator resolving (pending ->
+    // valid/invalid) happens in an HTTP callback that doesn't trigger change
+    // detection on its own. The template reads form.pending / email.pending
+    // directly to drive the "checking availability" hint and the submit
+    // button's disabled state, so without this the view stays frozen until an
+    // unrelated DOM event (e.g. refocusing the field) incidentally runs CD.
+    // Marking for check on every status change keeps the UI in sync.
+    this.form.statusChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.cdr.markForCheck());
+
+    // ...existing edit-mode setup
+  }
+}
+```
+
+`statusChanges` fires both when validation starts (`PENDING`) and when it settles
+(`VALID` / `INVALID`), so the hint and button stay in sync in both directions.
+
+## Why not other approaches?
+
+- **Remove OnPush.** Would fix it but throws away the performance benefit and
+  hides the same class of bug elsewhere in the component.
+- **Use the `async` pipe for `pending`.** There's no direct observable of
+  `pending`; you'd have to derive one from `statusChanges` anyway, so subscribing
+  - `markForCheck()` is the smaller, clearer change.
+- **Change the validator.** The validator was already correct — it completes and
+  reports the right result. The defect was purely in view refresh.
+
+## Verification
+
+1. `cd client && npm start`
+2. Edit an employee and change the email.
+3. The "checking availability…" hint clears and **Save changes** re-enables on its
+   own once the backend check returns — no need to click back into the field.
+
+## Affected files
+
+- `client/src/app/features/employees/pages/employee-form/employee-form.component.ts`

@@ -1,0 +1,361 @@
+{
+  "info": {
+    "name": "Banking Admin Portal API",
+    "description": "Mock Express backend for the Banking Admin Portal. Covers all Employee and Account endpoints plus the audit trail.\n\nBase URL is the `baseUrl` collection variable (default http://localhost:3000/api).\n\nThe Create requests automatically save the new id into the `employeeId` / `accountId` collection variables (see each request's Tests tab), so you can run the folders top-to-bottom without copy-pasting ids.\n\nEvery request sends an `X-Correlation-Id` header (set at the collection level) so client and server log lines can be tied together.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accountId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Attach a correlation id to every request if one isn't already set.",
+          "pm.request.headers.upsert({ key: 'X-Correlation-Id', value: 'postman-' + pm.variables.replaceIn('{{$guid}}') });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "lee",
+                  "description": "Matches first name, last name or email (case-insensitive).",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "SUPPORT",
+                  "description": "ADMIN | MANAGER | SUPPORT",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "ACTIVE | INACTIVE",
+                  "disabled": true
+                },
+                {
+                  "key": "hasAccounts",
+                  "value": "with",
+                  "description": "with | without (filters employees that own at least one account).",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "lastName",
+                  "description": "Field to sort by. Default lastName.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortDir",
+                  "value": "asc",
+                  "description": "asc | desc. Default asc.",
+                  "disabled": true
+                },
+                { "key": "page", "value": "1", "description": "1-based page number. Default 1." },
+                { "key": "size", "value": "10", "description": "Page size. Default 10." }
+              ]
+            },
+            "description": "Paginated / filtered / sorted list. Seed has 33 employees, so size=10 yields 4 pages.\n\nEnable any of the disabled query params to test search/filter/sort."
+          },
+          "response": []
+        },
+        {
+          "name": "Check email available",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/email-available?email=jordan.lee@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "email-available"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "jordan.lee@example.com",
+                  "description": "Email to check."
+                },
+                {
+                  "key": "excludeId",
+                  "value": "{{employeeId}}",
+                  "description": "Optional: an employee id whose own email should count as available (used by the edit form).",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Backs the Angular async unique-email validator. Returns { available: boolean }."
+          },
+          "response": []
+        },
+        {
+          "name": "Get employee by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Fetch a single employee. Uses the {{employeeId}} variable set by 'Create employee' (or paste one from the list response)."
+          },
+          "response": []
+        },
+        {
+          "name": "Create employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body && body.employeeId) {",
+                  "  pm.collectionVariables.set('employeeId', body.employeeId);",
+                  "  console.log('Saved employeeId =', body.employeeId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jordan\",\n  \"lastName\": \"Lee\",\n  \"email\": \"jordan.lee@example.com\",\n  \"role\": \"SUPPORT\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"]
+            },
+            "description": "Create an employee.\n\nRules:\n- firstName / lastName: 2-60 letters, spaces, hyphens, apostrophes.\n- email: valid, <= 120 chars, unique (409 if taken).\n- role: ADMIN | MANAGER | SUPPORT (required).\n- status: ACTIVE | INACTIVE (optional on create, defaults to ACTIVE).\n\nOn 201 the Tests tab saves employeeId into a collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Replace employee (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jordan\",\n  \"lastName\": \"Lee-Smith\",\n  \"email\": \"jordan.lee@example.com\",\n  \"role\": \"MANAGER\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Full replace. All fields required INCLUDING status. Email must stay unique (the current employee's own email is allowed)."
+          },
+          "response": []
+        },
+        {
+          "name": "Patch employee status (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Partial update. Send only the fields you want to change. Allowed: firstName, lastName, email, role, status."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete employee (DELETE)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Hard delete the employee. The service cascades a soft-close of their accounts. Returns 204 No Content."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "List accounts for employee",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}", "accounts"]
+            },
+            "description": "List all accounts belonging to an employee. 404 if the employee doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "Create account for employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body && body.accountId) {",
+                  "  pm.collectionVariables.set('accountId', body.accountId);",
+                  "  console.log('Saved accountId =', body.accountId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"12345678\",\n  \"accountType\": \"CHECKING\",\n  \"currency\": \"CAD\",\n  \"balance\": 100.50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}", "accounts"]
+            },
+            "description": "Create an account for the employee.\n\nRules:\n- accountNumber: 8-19 digits, numeric only, unique (409 if taken).\n- accountType: CHECKING | SAVINGS.\n- currency: CAD | USD.\n- balance: optional (defaults to 0); non-negative, max 2 decimals, up to 9999999999.99.\n\nOn 201 the Tests tab saves accountId into a collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Get account by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            },
+            "description": "Fetch a single account by its accountId."
+          },
+          "response": []
+        },
+        {
+          "name": "Replace account (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountType\": \"SAVINGS\",\n  \"currency\": \"USD\",\n  \"balance\": 2500.00,\n  \"status\": \"OPEN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            },
+            "description": "Full replace of the mutable account fields. accountType, currency, balance and status are all required. The account number itself is immutable."
+          },
+          "response": []
+        },
+        {
+          "name": "Patch account (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"balance\": 999.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            },
+            "description": "Partial update. Allowed fields: accountType, currency, balance, status. Sending { \"status\": \"OPEN\" } re-opens a closed account."
+          },
+          "response": []
+        },
+        {
+          "name": "Close account (DELETE)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            },
+            "description": "Soft-close the account (status -> CLOSED). Returns the closed account JSON (not 204)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit",
+      "item": [
+        {
+          "name": "Get employee audit log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}/audit",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}", "audit"]
+            },
+            "description": "Append-only audit trail for an employee (profile changes + their account changes). Written automatically by the services on every write."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

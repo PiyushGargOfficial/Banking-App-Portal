@@ -13,10 +13,18 @@
     "test:server:watch": "npm --prefix server run test:watch",
     "test:server:coverage": "npm --prefix server run test:coverage",
     "test:all": "npm run test:server && npm test",
-    "e2e": "npm --prefix client run e2e"
+    "e2e": "npm --prefix client run e2e",
+    "e2e:api": "start-server-and-test start:server http://localhost:3000/api/employees \"npm --prefix client run e2e:api\"",
+    "lint": "npm run lint:server && npm run lint:client",
+    "lint:server": "npm --prefix server run lint",
+    "lint:client": "npm --prefix client run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "prettier": "^3.8.3",
+    "start-server-and-test": "^2.1.5"
   },
   "engines": {
     "node": ">=20.11.0",

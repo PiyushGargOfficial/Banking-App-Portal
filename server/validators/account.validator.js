@@ -14,8 +14,7 @@ const {
 } = require('./common');
 
 const ACCOUNT_NUMBER_PATTERN = /^\d{8,19}$/;
-const balanceMessage =
-  `Balance must be a non-negative number with at most 2 decimal places, up to ${MAX_BALANCE}`;
+const balanceMessage = `Balance must be a non-negative number with at most 2 decimal places, up to ${MAX_BALANCE}`;
 
 /** Validate the payload for POST /api/employees/:id/accounts. */
 function validateCreate(body) {

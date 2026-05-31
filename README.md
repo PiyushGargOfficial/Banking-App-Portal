@@ -14,12 +14,12 @@ banking-admin-portal/
 
 ## 1. Prerequisites
 
-| Tool          | Version             | Notes                                       |
-|---------------|--------------------|---------------------------------------------|
-| **Node.js**   | `>= 20.11 LTS`     | Required by Angular 17 toolchain. Node 22 LTS is also supported. Node 18 reached EOL in April 2025 and is no longer accepted. |
-| **npm**       | `>= 10`            | Bundled with Node 20.                       |
-| **Chrome**    | latest             | Karma tests use `ChromeHeadless`.           |
-| **Git**       | any recent         | For cloning / commits.                      |
+| Tool        | Version        | Notes                                                                                                                         |
+| ----------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Node.js** | `>= 20.11 LTS` | Required by Angular 17 toolchain. Node 22 LTS is also supported. Node 18 reached EOL in April 2025 and is no longer accepted. |
+| **npm**     | `>= 10`        | Bundled with Node 20.                                                                                                         |
+| **Chrome**  | latest         | Karma tests use `ChromeHeadless`.                                                                                             |
+| **Git**     | any recent     | For cloning / commits.                                                                                                        |
 
 > Pinned via `engines` in each `package.json`. `npm install` will warn if you're on an older Node.
 > Tested on Node 20.x and 22.x.
@@ -35,6 +35,7 @@ npm run install:all
 ```
 
 This installs:
+
 - root tooling (`concurrently`)
 - `server/` dependencies (`express`, `cors`, `morgan`, `uuid`)
 - `client/` dependencies (Angular, NgRx, Cypress, Karma, Jasmine)
@@ -49,10 +50,10 @@ npm start
 
 This concurrently starts:
 
-| Service              | URL                          | Notes                                                   |
-|---------------------|------------------------------|---------------------------------------------------------|
-| Express mock API    | <http://localhost:3000>      | Seeded with 3 employees + 3 accounts on every restart.  |
-| Angular dev server  | <http://localhost:4200>      | Proxies `/api/*` to the mock API (see `proxy.conf.json`).|
+| Service            | URL                     | Notes                                                     |
+| ------------------ | ----------------------- | --------------------------------------------------------- |
+| Express mock API   | <http://localhost:3000> | Seeded with 33 employees + 12 accounts on every restart.  |
+| Angular dev server | <http://localhost:4200> | Proxies `/api/*` to the mock API (see `proxy.conf.json`). |
 
 Open <http://localhost:4200> in your browser.
 
@@ -86,31 +87,31 @@ npm --prefix client run e2e:open         # interactive runner
 
 ### Frontend unit tests
 
-| Layer       | File                                                                |
-|-------------|---------------------------------------------------------------------|
-| Reducer     | `employees/store/employee.reducer.spec.ts`                          |
-| Effect      | `employees/store/employee.effects.spec.ts`                          |
-| Service     | `core/services/employee-api.service.spec.ts`                        |
-| Form (UI)   | `employees/pages/employee-form/employee-form.component.spec.ts`     |
+| Layer     | File                                                            |
+| --------- | --------------------------------------------------------------- |
+| Reducer   | `employees/store/employee.reducer.spec.ts`                      |
+| Effect    | `employees/store/employee.effects.spec.ts`                      |
+| Service   | `core/services/employee-api.service.spec.ts`                    |
+| Form (UI) | `employees/pages/employee-form/employee-form.component.spec.ts` |
 
 ### Backend unit tests (Jest)
 
 The two highest-risk service files are covered end to end:
 
-| File | What's covered |
-|---|---|
-| `server/__tests__/services/audit.service.test.js` | **Diff computation** (no-op writes return `null`, single/multi field diffs, untracked fields ignored), CREATE/DELETE snapshot shape, CLOSE/REOPEN/CASCADE_CLOSE narratives, context defaults (`actor=admin`, `correlationId=null`), `listForEmployee` ordering + pagination |
+| File                                                 | What's covered                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/__tests__/services/audit.service.test.js`    | **Diff computation** (no-op writes return `null`, single/multi field diffs, untracked fields ignored), CREATE/DELETE snapshot shape, CLOSE/REOPEN/CASCADE_CLOSE narratives, context defaults (`actor=admin`, `correlationId=null`), `listForEmployee` ordering + pagination                                                                                                                                                 |
 | `server/__tests__/services/employee.service.test.js` | **Remove cascade rules** - `remove()` returns false for unknown ids, deletes the employee, flips OPEN accounts to CLOSED, emits exactly one DELETE entry plus one CASCADE_CLOSE per **OPEN** account (skipping already-CLOSED ones), forwards `correlationId`/`actor`, audit trail outlives the deleted row. Also covers create defaults + list filters/sort/pagination (search, role, status, hasAccounts cross-aggregate) |
 
 A `resetStore()` helper in `server/__tests__/helpers/` wipes the in-memory store between tests so each test runs against a clean database.
 
 ### Cypress end-to-end specs
 
-| Spec | Flow covered |
-|---|---|
-| `cypress/e2e/employee-flow.cy.ts` | Listing, search, create + delete, required-field validation |
-| `cypress/e2e/account-flow.cy.ts` | Account CRUD on the detail page: create with unique number, balance/format validation, close via confirm dialog, reopen back to OPEN |
-| `cypress/e2e/audit-log-flow.cy.ts` | After actions (status toggle, account add/close/reopen) the matching entry appears at the **top** of the audit log with the right action label, masked account number, actor and cid |
+| Spec                                 | Flow covered                                                                                                                                                                                                         |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cypress/e2e/employee-flow.cy.ts`    | Listing, search, create + delete, required-field validation                                                                                                                                                          |
+| `cypress/e2e/account-flow.cy.ts`     | Account CRUD on the detail page: create with unique number, balance/format validation, close via confirm dialog, reopen back to OPEN                                                                                 |
+| `cypress/e2e/audit-log-flow.cy.ts`   | After actions (status toggle, account add/close/reopen) the matching entry appears at the **top** of the audit log with the right action label, masked account number, actor and cid                                 |
 | `cypress/e2e/employee-filters.cy.ts` | Each filter (search/role/status/hasAccounts) narrows the result; combinations compose with AND semantics; `with` and `without` partition the universe; reset clears all four; any filter change drops back to page 1 |
 
 ---
@@ -119,24 +120,24 @@ A `resetStore()` helper in `server/__tests__/helpers/` wipes the in-memory store
 
 The mock backend exposes every HTTP method called out by the spec.
 
-| Resource       | Verb     | URL                                  | Notes                                  |
-|---------------|----------|--------------------------------------|----------------------------------------|
-| Employees     | `GET`    | `/api/employees`                     | Search + filter + paginate + sort      |
-|               | `GET`    | `/api/employees/:id`                 | Single employee                        |
-|               | `GET`    | `/api/employees/email-available`     | Async validator helper                 |
-|               | `POST`   | `/api/employees`                     | Create                                 |
-|               | `PUT`    | `/api/employees/:id`                 | Full replace                           |
-|               | `PATCH`  | `/api/employees/:id`                 | Partial update (e.g. status)           |
-|               | `DELETE` | `/api/employees/:id`                 | Hard delete + cascade soft-close accts |
-| Accounts      | `GET`    | `/api/employees/:id/accounts`        |                                        |
-|               | `POST`   | `/api/employees/:id/accounts`        | Create account for employee            |
-|               | `GET`    | `/api/accounts/:accountId`           | Single account                         |
-|               | `PUT`    | `/api/accounts/:accountId`           | Full replace                           |
-|               | `PATCH`  | `/api/accounts/:accountId`           | Partial update                         |
-|               | `DELETE` | `/api/accounts/:accountId`           | **Soft close** (sets `status=CLOSED`)  |
-| Audit         | `GET`    | `/api/employees/:id/audit`           | **Append-only** trail for the employee (profile + their accounts). Newest first, paginated via `?page=&size=`. |
+| Resource  | Verb     | URL                              | Notes                                                                                                          |
+| --------- | -------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Employees | `GET`    | `/api/employees`                 | Search + filter + paginate + sort                                                                              |
+|           | `GET`    | `/api/employees/:id`             | Single employee                                                                                                |
+|           | `GET`    | `/api/employees/email-available` | Async validator helper                                                                                         |
+|           | `POST`   | `/api/employees`                 | Create                                                                                                         |
+|           | `PUT`    | `/api/employees/:id`             | Full replace                                                                                                   |
+|           | `PATCH`  | `/api/employees/:id`             | Partial update (e.g. status)                                                                                   |
+|           | `DELETE` | `/api/employees/:id`             | Hard delete + cascade soft-close accts                                                                         |
+| Accounts  | `GET`    | `/api/employees/:id/accounts`    |                                                                                                                |
+|           | `POST`   | `/api/employees/:id/accounts`    | Create account for employee                                                                                    |
+|           | `GET`    | `/api/accounts/:accountId`       | Single account                                                                                                 |
+|           | `PUT`    | `/api/accounts/:accountId`       | Full replace                                                                                                   |
+|           | `PATCH`  | `/api/accounts/:accountId`       | Partial update                                                                                                 |
+|           | `DELETE` | `/api/accounts/:accountId`       | **Soft close** (sets `status=CLOSED`)                                                                          |
+| Audit     | `GET`    | `/api/employees/:id/audit`       | **Append-only** trail for the employee (profile + their accounts). Newest first, paginated via `?page=&size=`. |
 
-Errors are returned as RFC 7807 *problem-details* documents:
+Errors are returned as RFC 7807 _problem-details_ documents:
 
 ```json
 {
@@ -156,14 +157,14 @@ Every meaningful write against an employee profile - or against one of their
 accounts - is recorded as an immutable audit entry, attributed to the
 operating actor and the request's `X-Correlation-Id`.
 
-| Triggering action | Audit entry |
-|---|---|
-| Create employee | `Employee` / `CREATE` with full snapshot |
-| Update or PATCH employee | `Employee` / `UPDATE` with field-level diff |
-| Delete employee | `Employee` / `DELETE` with pre-delete snapshot + one `Account` / `CASCADE_CLOSE` per OPEN account on the way out |
-| Create account | `Account` / `CREATE` with snapshot |
-| Update / PATCH account | `Account` / `UPDATE` with field-level diff (or `CLOSE` / `REOPEN` for status-only flips) |
-| Close account (DELETE) | `Account` / `CLOSE` |
+| Triggering action        | Audit entry                                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Create employee          | `Employee` / `CREATE` with full snapshot                                                                         |
+| Update or PATCH employee | `Employee` / `UPDATE` with field-level diff                                                                      |
+| Delete employee          | `Employee` / `DELETE` with pre-delete snapshot + one `Account` / `CASCADE_CLOSE` per OPEN account on the way out |
+| Create account           | `Account` / `CREATE` with snapshot                                                                               |
+| Update / PATCH account   | `Account` / `UPDATE` with field-level diff (or `CLOSE` / `REOPEN` for status-only flips)                         |
+| Close account (DELETE)   | `Account` / `CLOSE`                                                                                              |
 
 Entries are append-only by design: the audit repository deliberately exposes
 no update or delete operations, and entries persist even after the parent
@@ -246,14 +247,14 @@ HTTP response  (or [error-handler] -> problem-details JSON)
 
 #### Layer responsibilities
 
-| Layer | Owns | Does NOT do |
-|---|---|---|
-| **Repository** | Pure CRUD against the store, query helpers (`findByEmail`, `findByEmployeeId`, `getEmployeeIdsWithAccounts`) | Timestamps, uuids, defaults, HTTP, business rules |
-| **Service** | Business rules (cascade soft-close on delete, soft close-only, "OPEN by default"), uuid + timestamp generation, list query (filters/sort/pagination, cross-aggregate joins) | Direct store access, HTTP |
-| **Validator** | Schema checks, friendly error messages | DB access, HTTP responses |
-| **Controller** | Input parsing/sanitising, validator + service orchestration, status codes | Business rules, route definitions, repository access |
-| **Routes** | URL -> controller wiring, route order | Logic of any kind |
-| **Middleware** | Cross-cutting (cid, logging, errors) | Resource-specific logic |
+| Layer          | Owns                                                                                                                                                                        | Does NOT do                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| **Repository** | Pure CRUD against the store, query helpers (`findByEmail`, `findByEmployeeId`, `getEmployeeIdsWithAccounts`)                                                                | Timestamps, uuids, defaults, HTTP, business rules    |
+| **Service**    | Business rules (cascade soft-close on delete, soft close-only, "OPEN by default"), uuid + timestamp generation, list query (filters/sort/pagination, cross-aggregate joins) | Direct store access, HTTP                            |
+| **Validator**  | Schema checks, friendly error messages                                                                                                                                      | DB access, HTTP responses                            |
+| **Controller** | Input parsing/sanitising, validator + service orchestration, status codes                                                                                                   | Business rules, route definitions, repository access |
+| **Routes**     | URL -> controller wiring, route order                                                                                                                                       | Logic of any kind                                    |
+| **Middleware** | Cross-cutting (cid, logging, errors)                                                                                                                                        | Resource-specific logic                              |
 
 #### Why split model -> repository + service?
 
@@ -310,15 +311,15 @@ We use the **action-group + facade** pattern with `createFeature`:
 
 ### Signals at the leaf (the NgRx + Signals split)
 
-NgRx remains the **single source of truth** for cross-component state. Signals show up at three specific seams where they are objectively the right tool — *not* sprinkled everywhere.
+NgRx remains the **single source of truth** for cross-component state. Signals show up at three specific seams where they are objectively the right tool — _not_ sprinkled everywhere.
 
-| Pattern | Where it's used | Why it's the right tool here |
-|---|---|---|
-| `toSignal()` bridge | `EmployeeListComponent`, `AccountListComponent`, `EmployeeDetailComponent` | Converts facade observables to signals at the component boundary. Templates read state synchronously (`items()`, `loading()`) instead of pipe-chaining (`(items$ \| async)`) and lose the `@if (...; as x)` workaround in the process. The store doesn't change. |
-| `signal()` for component-local UI state | `confirmOpen`, `pendingDelete`, `pendingClose`, `showForm`, `editing`, `query` | These flags are never shared, never persisted, never queried by anything else. Putting them in NgRx would be a feature-slice for what is effectively a class field. Signals give granular updates without ceremony. |
-| `computed()` for derived view-model | `pageSummary` in employee list, `formHeading` in account list, `hasNotifications` in notification service | Memoised derivations of multiple signals. The string `"3 / 7 - 65 total"` recomputes only when `page`, `totalPages` or `total` actually change. |
-| `effect()` for side-effects | `document.title` sync in `EmployeeDetailComponent` | Classic state-driven DOM mutation outside Angular's render cycle. Building an NgRx action chain to write one string to the document would be theatre. `effect()` auto-tracks the `employee()` signal and tears itself down on component destroy via `DestroyRef`. |
-| Signal-first service | `NotificationService` | The toast queue is pure UI plumbing — items live 3–5 seconds and then vanish. A `signal<Notification[]>()` plus a `computed()` (`hasNotifications`) is the right shape; an NgRx slice would be 4 files of boilerplate for the same job. |
+| Pattern                                 | Where it's used                                                                                           | Why it's the right tool here                                                                                                                                                                                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `toSignal()` bridge                     | `EmployeeListComponent`, `AccountListComponent`, `EmployeeDetailComponent`                                | Converts facade observables to signals at the component boundary. Templates read state synchronously (`items()`, `loading()`) instead of pipe-chaining (`(items$ \| async)`) and lose the `@if (...; as x)` workaround in the process. The store doesn't change.  |
+| `signal()` for component-local UI state | `confirmOpen`, `pendingDelete`, `pendingClose`, `showForm`, `editing`, `query`                            | These flags are never shared, never persisted, never queried by anything else. Putting them in NgRx would be a feature-slice for what is effectively a class field. Signals give granular updates without ceremony.                                               |
+| `computed()` for derived view-model     | `pageSummary` in employee list, `formHeading` in account list, `hasNotifications` in notification service | Memoised derivations of multiple signals. The string `"3 / 7 - 65 total"` recomputes only when `page`, `totalPages` or `total` actually change.                                                                                                                   |
+| `effect()` for side-effects             | `document.title` sync in `EmployeeDetailComponent`                                                        | Classic state-driven DOM mutation outside Angular's render cycle. Building an NgRx action chain to write one string to the document would be theatre. `effect()` auto-tracks the `employee()` signal and tears itself down on component destroy via `DestroyRef`. |
+| Signal-first service                    | `NotificationService`                                                                                     | The toast queue is pure UI plumbing — items live 3–5 seconds and then vanish. A `signal<Notification[]>()` plus a `computed()` (`hasNotifications`) is the right shape; an NgRx slice would be 4 files of boilerplate for the same job.                           |
 
 Concretely, the boundary looks like:
 
@@ -390,3 +391,4 @@ Strongly-typed reactive forms (`fb.nonNullable.group`) with:
 - Data lives in-memory; restarting the server reseeds. There is no production database wiring.
 - The "total balance" tile sums numeric balances across currencies as a single number - a real product would FX-convert into a base currency; calling that out explicitly in the UI was the simplest honest choice for a take-home.
 - The Cypress spec assumes both the dev server and the mock API are running (the standard `npm start` flow does that for you).
+- **Logging note:** The mock services log full entity models to stdout on each write to make the demo easy to trace. In production this would be gated behind `LOG_LEVEL=debug` (or field-redacted), since employee email and account balance are PII and application logs are typically centralized and long-retained.

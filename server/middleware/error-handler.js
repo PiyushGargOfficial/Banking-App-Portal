@@ -23,9 +23,7 @@ function notFound(req, res) {
 function errorHandler(err, req, res, next) {
   // eslint-disable-next-line no-console
   console.error('[server] Unhandled error', { cid: req.correlationId, err });
-  res
-    .status(500)
-    .json(problem(500, 'Internal Server Error', 'An unexpected error occurred'));
+  res.status(500).json(problem(500, 'Internal Server Error', 'An unexpected error occurred'));
 }
 
 module.exports = { notFound, errorHandler };

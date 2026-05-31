@@ -6,14 +6,19 @@ export const AccountPageActions = createActionGroup({
   source: 'Account/Page',
   events: {
     'Load For Employee': props<{ employeeId: string }>(),
-    'Create': props<{ employeeId: string; payload: AccountCreate }>(),
-    'Update': props<{
+    Create: props<{ employeeId: string; payload: AccountCreate }>(),
+    Update: props<{
       accountId: string;
-      payload: { accountType: Account['accountType']; currency: Account['currency']; balance: number; status: Account['status'] };
+      payload: {
+        accountType: Account['accountType'];
+        currency: Account['currency'];
+        balance: number;
+        status: Account['status'];
+      };
     }>(),
-    'Patch': props<{ accountId: string; payload: AccountPatch }>(),
-    'Close': props<{ accountId: string }>(),
-    'Clear': emptyProps()
+    Patch: props<{ accountId: string; payload: AccountPatch }>(),
+    Close: props<{ accountId: string }>(),
+    Clear: emptyProps()
   }
 });
 

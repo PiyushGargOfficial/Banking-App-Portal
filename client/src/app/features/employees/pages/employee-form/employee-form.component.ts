@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
@@ -39,7 +46,13 @@ import { PageHeaderComponent } from '@shared/components/page-header/page-header.
   selector: 'app-employee-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, AsyncPipe, RouterLink, LoadingSpinnerComponent, PageHeaderComponent],
+  imports: [
+    ReactiveFormsModule,
+    AsyncPipe,
+    RouterLink,
+    LoadingSpinnerComponent,
+    PageHeaderComponent
+  ],
   templateUrl: './employee-form.component.html',
   styleUrl: './employee-form.component.scss'
 })
@@ -49,6 +62,7 @@ export class EmployeeFormComponent implements OnInit, OnDestroy, CanComponentDea
   private readonly router = inject(Router);
   private readonly facade = inject(EmployeeFacade);
   private readonly employeeApi = inject(EmployeeApiService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   /** Set in ngOnInit from the route param. Empty -> create mode. */
@@ -77,25 +91,33 @@ export class EmployeeFormComponent implements OnInit, OnDestroy, CanComponentDea
    *     - required (selects default to a valid value but defensive anyway)
    */
   protected readonly form = this.fb.nonNullable.group({
-    firstName: ['', [
-      Validators.required,
-      noWhitespaceValidator,
-      Validators.minLength(2),
-      Validators.maxLength(60),
-      nameFormatValidator
-    ]],
-    lastName: ['', [
-      Validators.required,
-      noWhitespaceValidator,
-      Validators.minLength(2),
-      Validators.maxLength(60),
-      nameFormatValidator
-    ]],
+    firstName: [
+      '',
+      [
+        Validators.required,
+        noWhitespaceValidator,
+        Validators.minLength(2),
+        Validators.maxLength(60),
+        nameFormatValidator
+      ]
+    ],
+    lastName: [
+      '',
+      [
+        Validators.required,
+        noWhitespaceValidator,
+        Validators.minLength(2),
+        Validators.maxLength(60),
+        nameFormatValidator
+      ]
+    ],
     email: [
       '',
       {
         validators: [Validators.required, Validators.email, Validators.maxLength(120)],
-        asyncValidators: [uniqueEmailValidator(this.employeeApi, () => this.employeeId ?? undefined)],
+        asyncValidators: [
+          uniqueEmailValidator(this.employeeApi, () => this.employeeId ?? undefined)
+        ],
         updateOn: 'blur' as const
       }
     ],
@@ -109,6 +131,15 @@ export class EmployeeFormComponent implements OnInit, OnDestroy, CanComponentDea
 
   ngOnInit(): void {
     this.employeeId = this.route.snapshot.paramMap.get('id');
+
+    // With OnPush, the async unique-email validator resolving (pending ->
+    // valid/invalid) happens in an HTTP callback that doesn't trigger change
+    // detection on its own. The template reads form.pending / email.pending
+    // directly to drive the "checking availability" hint and the submit
+    // button's disabled state, so without this the view stays frozen until an
+    // unrelated DOM event (e.g. refocusing the field) incidentally runs CD.
+    // Marking for check on every status change keeps the UI in sync.
+    this.form.statusChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.cdr.markForCheck());
 
     if (this.employeeId) {
       this.facade.loadOne(this.employeeId);
@@ -130,7 +161,9 @@ export class EmployeeFormComponent implements OnInit, OnDestroy, CanComponentDea
     return confirm('You have unsaved changes. Leave anyway?');
   }
 
-  isEditMode(): boolean { return !!this.employeeId; }
+  isEditMode(): boolean {
+    return !!this.employeeId;
+  }
 
   /** Submit handler. Marks all-touched so error messages show on first attempt. */
   onSubmit(): void {

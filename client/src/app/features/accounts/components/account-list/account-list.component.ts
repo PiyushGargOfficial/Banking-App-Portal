@@ -1,8 +1,25 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  computed,
+  inject,
+  signal
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
-import { Account, AccountCreate, AccountStatus, AccountType, Currency } from '@core/models/account.model';
+import {
+  Account,
+  AccountCreate,
+  AccountStatus,
+  AccountType,
+  Currency
+} from '@core/models/account.model';
 import { MaskAccountPipe } from '@shared/pipes/mask-account.pipe';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
 import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
@@ -50,10 +67,12 @@ export class AccountListComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) employeeId!: string;
 
   // --- Facade observables -> signals -----------------------------------------
-  protected readonly items     = toSignal(this.facade.items$,               { initialValue: [] as Account[] });
-  protected readonly loading   = toSignal(this.facade.loading$,             { initialValue: false });
-  protected readonly subtotals = toSignal(this.facade.subtotalsByCurrency$, { initialValue: {} as Record<string, number> });
-  protected readonly total     = toSignal(this.facade.totalBalance$,        { initialValue: 0 });
+  protected readonly items = toSignal(this.facade.items$, { initialValue: [] as Account[] });
+  protected readonly loading = toSignal(this.facade.loading$, { initialValue: false });
+  protected readonly subtotals = toSignal(this.facade.subtotalsByCurrency$, {
+    initialValue: {} as Record<string, number>
+  });
+  protected readonly total = toSignal(this.facade.totalBalance$, { initialValue: 0 });
 
   // Kept as an Observable because it's passed straight to the AccountForm
   // child component, whose @Input is typed `Observable<boolean>`. We could
@@ -61,8 +80,8 @@ export class AccountListComponent implements OnInit, OnChanges, OnDestroy {
   protected readonly saving$ = this.facade.saving$;
 
   // --- Component-local UI state (signal) -------------------------------------
-  protected readonly showForm     = signal(false);
-  protected readonly editing      = signal<Account | null>(null);
+  protected readonly showForm = signal(false);
+  protected readonly editing = signal<Account | null>(null);
   protected readonly pendingClose = signal<Account | null>(null);
 
   // --- Derived view-model (computed) -----------------------------------------
@@ -110,7 +129,12 @@ export class AccountListComponent implements OnInit, OnChanges, OnDestroy {
     this.cancelForm();
   }
 
-  onUpdate(payload: { accountType: AccountType; currency: Currency; balance: number; status: AccountStatus }): void {
+  onUpdate(payload: {
+    accountType: AccountType;
+    currency: Currency;
+    balance: number;
+    status: AccountStatus;
+  }): void {
     const editing = this.editing();
     if (!editing) return;
     this.facade.update(editing.accountId, payload);

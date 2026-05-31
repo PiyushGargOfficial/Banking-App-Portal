@@ -42,10 +42,18 @@ export class NotificationService {
    */
   readonly hasNotifications = computed(() => this._notifications().length > 0);
 
-  success(message: string, ttl = 3500): void { this.push('success', message, ttl); }
-  info(message: string, ttl = 3500): void { this.push('info', message, ttl); }
-  warning(message: string, ttl = 4500): void { this.push('warning', message, ttl); }
-  error(message: string, ttl = 5500): void { this.push('error', message, ttl); }
+  success(message: string, ttl = 3500): void {
+    this.push('success', message, ttl);
+  }
+  info(message: string, ttl = 3500): void {
+    this.push('info', message, ttl);
+  }
+  warning(message: string, ttl = 4500): void {
+    this.push('warning', message, ttl);
+  }
+  error(message: string, ttl = 5500): void {
+    this.push('error', message, ttl);
+  }
 
   dismiss(id: number): void {
     this._notifications.update((list) => list.filter((n) => n.id !== id));

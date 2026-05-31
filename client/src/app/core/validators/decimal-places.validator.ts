@@ -22,8 +22,6 @@ export function maxDecimalPlaces(max: number): ValidatorFn {
     if (dot === -1) return null;
 
     const fractionLen = str.length - dot - 1;
-    return fractionLen > max
-      ? { maxDecimalPlaces: { max, actual: fractionLen } }
-      : null;
+    return fractionLen > max ? { maxDecimalPlaces: { max, actual: fractionLen } } : null;
   };
 }

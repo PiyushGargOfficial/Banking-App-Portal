@@ -18,6 +18,17 @@ const AuditService = require('./audit.service');
 
 const nowIso = () => new Date().toISOString();
 
+/**
+ * Emit the full model to the server log on a write. Kept here (not in the
+ * controller) because this is where the persisted model is fully formed -
+ * with generated id, defaults applied and timestamps set. The correlation id
+ * is included so the line ties back to the matching morgan HTTP access line.
+ */
+const logModel = (action, model, context) => {
+  const cid = context?.correlationId || 'n/a';
+  console.log(`[account] ${action} cid=${cid}\n${JSON.stringify(model, null, 2)}`);
+};
+
 const AccountService = {
   // --- Queries -------------------------------------------------------------
 
@@ -42,13 +53,14 @@ const AccountService = {
       accountNumber,
       accountType,
       currency,
-      balance: balance ?? 0,           // domain default
-      status: 'OPEN',                  // domain default
+      balance: balance ?? 0, // domain default
+      status: 'OPEN', // domain default
       createdAt: nowIso(),
       updatedAt: nowIso()
     };
     AccountRepository.insert(account);
     AuditService.recordAccountCreated(account, context);
+    logModel('CREATE', account, context);
     return account;
   },
 
@@ -63,6 +75,7 @@ const AccountService = {
       updatedAt: nowIso()
     });
     AuditService.recordAccountUpdated(before, after, context);
+    logModel('UPDATE', after, context);
     return after;
   },
 
@@ -78,7 +91,9 @@ const AccountService = {
     const after = AccountRepository.update(accountId, { ...patch, updatedAt: nowIso() });
 
     const isOnlyStatusFlip =
-      Object.keys(patch).length === 1 && patch.status !== undefined && patch.status !== before.status;
+      Object.keys(patch).length === 1 &&
+      patch.status !== undefined &&
+      patch.status !== before.status;
 
     if (isOnlyStatusFlip && patch.status === 'CLOSED') {
       AuditService.recordAccountClosed(after, context);
@@ -87,6 +102,7 @@ const AccountService = {
     } else {
       AuditService.recordAccountUpdated(before, after, context);
     }
+    logModel('UPDATE', after, context);
     return after;
   },
 
@@ -108,6 +124,7 @@ const AccountService = {
       updatedAt: nowIso()
     });
     AuditService.recordAccountClosed(after, context);
+    logModel('CLOSE', after, context);
     return after;
   }
 };

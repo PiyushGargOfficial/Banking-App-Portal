@@ -107,11 +107,11 @@ describe('AuditService.recordEmployeeUpdated (diff computation)', () => {
   it('records every changed field when multiple change in one write', () => {
     const after = {
       ...baseEmployee,
-      firstName: 'Aarav',                   // unchanged
-      lastName: 'Sharma-Singh',             // changed
-      email: 'aarav.singh@bankadmin.io',    // changed
-      role: 'ADMIN',                        // unchanged
-      status: 'INACTIVE'                    // changed
+      firstName: 'Aarav', // unchanged
+      lastName: 'Sharma-Singh', // changed
+      email: 'aarav.singh@bankadmin.io', // changed
+      role: 'ADMIN', // unchanged
+      status: 'INACTIVE' // changed
     };
 
     AuditService.recordEmployeeUpdated(baseEmployee, after, ctx);
@@ -129,7 +129,7 @@ describe('AuditService.recordEmployeeUpdated (diff computation)', () => {
 
   it('treats undefined-vs-defined as a change (covers added fields)', () => {
     const before = { ...baseEmployee, status: undefined };
-    const after  = { ...baseEmployee, status: 'ACTIVE' };
+    const after = { ...baseEmployee, status: 'ACTIVE' };
 
     AuditService.recordEmployeeUpdated(before, after, ctx);
 
@@ -141,7 +141,7 @@ describe('AuditService.recordEmployeeUpdated (diff computation)', () => {
   it('does not include untracked fields even if they differ', () => {
     // updatedAt is on the row but NOT in the tracked field set.
     const before = { ...baseEmployee, updatedAt: '2026-01-01T00:00:00Z' };
-    const after  = { ...baseEmployee, updatedAt: '2026-05-28T00:00:00Z' };
+    const after = { ...baseEmployee, updatedAt: '2026-05-28T00:00:00Z' };
 
     const result = AuditService.recordEmployeeUpdated(before, after, ctx);
 
@@ -222,9 +222,7 @@ describe('AuditService account narratives', () => {
 
     AuditService.recordAccountUpdated(baseAccount, after, ctx);
 
-    expect(store.auditLog[0].changes).toEqual([
-      { field: 'balance', before: 100.0, after: 250.5 }
-    ]);
+    expect(store.auditLog[0].changes).toEqual([{ field: 'balance', before: 100.0, after: 250.5 }]);
   });
 });
 
@@ -258,7 +256,10 @@ describe('AuditService.listForEmployee', () => {
       { ...baseEmployee, status: 'INACTIVE' },
       { actor: 'second' }
     );
-    AuditService.recordEmployeeCreated({ ...baseEmployee, employeeId: 'emp-2' }, { actor: 'other-employee' });
+    AuditService.recordEmployeeCreated(
+      { ...baseEmployee, employeeId: 'emp-2' },
+      { actor: 'other-employee' }
+    );
     AuditService.recordAccountCreated(baseAccount, { actor: 'third' });
   });
 

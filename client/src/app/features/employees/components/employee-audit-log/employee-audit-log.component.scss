@@ -1,5 +1,7 @@
 /* Component-scoped styles for the audit log card. */
-:host { display: block; }
+:host {
+  display: block;
+}
 
 .audit-error {
   background: var(--color-danger-soft);
@@ -30,7 +32,9 @@
   gap: var(--space-3);
   transition: border-color 120ms ease;
 
-  &:hover { border-color: var(--color-border); }
+  &:hover {
+    border-color: var(--color-border);
+  }
 }
 
 .audit-entry__head {
@@ -44,24 +48,58 @@
 /* On tablet portrait the timestamp drops below the badge / resource row
    so the head doesn't collapse into a single tight line. */
 @media (max-width: 768px) {
-  .audit-entry__head { gap: var(--space-2); }
-  .audit-entry__when { margin-left: 0; flex-basis: 100%; }
+  .audit-entry__head {
+    gap: var(--space-2);
+  }
+  .audit-entry__when {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
 }
 
 /* Phone: tighten entry padding, gaps, and the snapshot grid so the
    trail stays scannable on a ~390px screen. */
 @media (max-width: 480px) {
-  .audit-entry { padding: var(--space-3); gap: var(--space-2); }
-  .audit-entry__resource { font-size: 12px; }
-  .audit-entry__account { font-size: 11px; padding: 1px 6px; }
-  .audit-entry__when { font-size: 11px; }
-  .audit-snapshot { grid-template-columns: 1fr 1fr; gap: 6px; }
-  .audit-snapshot__pair { padding: 5px 8px; font-size: 12px; }
-  .audit-snapshot__pair dt { font-size: 10px; }
-  .audit-changes li { padding: 5px 8px; font-size: 12px; }
-  .audit-changes__field { min-width: 60px; }
-  .audit-entry__foot { gap: var(--space-3); font-size: 10px; }
-  .audit-entry__cid code { font-size: 10px; padding: 1px 4px; }
+  .audit-entry {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+  .audit-entry__resource {
+    font-size: 12px;
+  }
+  .audit-entry__account {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+  .audit-entry__when {
+    font-size: 11px;
+  }
+  .audit-snapshot {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .audit-snapshot__pair {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .audit-snapshot__pair dt {
+    font-size: 10px;
+  }
+  .audit-changes li {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .audit-changes__field {
+    min-width: 60px;
+  }
+  .audit-entry__foot {
+    gap: var(--space-3);
+    font-size: 10px;
+  }
+  .audit-entry__cid code {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
 }
 
 .audit-entry__resource {
@@ -83,7 +121,11 @@
   font-size: 12px;
 }
 
-.audit-entry__body { display: flex; flex-direction: column; gap: var(--space-3); }
+.audit-entry__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
 
 .audit-entry__foot {
   display: flex;
@@ -123,7 +165,10 @@
 
 /* Big screens: give each pair a touch more horizontal room for emails. */
 @media (min-width: 1920px) {
-  .audit-snapshot { grid-template-columns: repeat(auto-fit, minmax(220px, 360px)); gap: var(--space-3); }
+  .audit-snapshot {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 360px));
+    gap: var(--space-3);
+  }
 }
 
 .audit-snapshot__pair {
@@ -131,8 +176,17 @@
   border-radius: var(--radius-sm);
   padding: 6px 10px;
   font-size: 13px;
-  dt { font-weight: 600; color: var(--color-text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
-  dd { margin: 2px 0 0; color: var(--color-text); }
+  dt {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  dd {
+    margin: 2px 0 0;
+    color: var(--color-text);
+  }
 }
 
 /* UPDATE diff list. */
@@ -177,7 +231,9 @@
 }
 
 @media (max-width: 768px) {
-  .audit-changes__field { min-width: 70px; }
+  .audit-changes__field {
+    min-width: 70px;
+  }
 }
 
 .audit-reason {
@@ -193,12 +249,30 @@
   font-weight: 700;
   letter-spacing: 0.04em;
 }
-.badge--create  { background: var(--color-success-soft); color: var(--color-success); }
-.badge--update  { background: var(--color-primary-soft); color: var(--color-primary-deep); }
-.badge--delete  { background: var(--color-danger-soft); color: var(--color-danger); }
-.badge--close   { background: #EEF0F2; color: var(--color-text-muted); }
-.badge--reopen  { background: var(--color-success-soft); color: var(--color-success); }
-.badge--cascade { background: var(--color-warn-soft); color: var(--color-warn); }
+.badge--create {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.badge--update {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+.badge--delete {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.badge--close {
+  background: #eef0f2;
+  color: var(--color-text-muted);
+}
+.badge--reopen {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.badge--cascade {
+  background: var(--color-warn-soft);
+  color: var(--color-warn);
+}
 
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

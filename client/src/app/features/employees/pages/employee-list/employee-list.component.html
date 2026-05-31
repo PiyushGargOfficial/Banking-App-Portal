@@ -2,11 +2,14 @@
   <a routerLink="/employees/new" class="btn btn-primary" data-cy="new-employee">+ New Employee</a>
 </app-page-header>
 
-<app-employee-filter [initialQuery]="query()" (changed)="onFilterChanged($event)"></app-employee-filter>
+<app-employee-filter
+  [initialQuery]="query()"
+  (changed)="onFilterChanged($event)"
+></app-employee-filter>
 
 <section class="card mt-4">
   @if (loading()) {
-    <div class="row" style="justify-content: center; padding: 24px;">
+    <div class="row" style="justify-content: center; padding: 24px">
       <app-loading-spinner label="Loading employees"></app-loading-spinner>
       <span class="text-muted">Loading employees...</span>
     </div>
@@ -19,7 +22,8 @@
     <app-empty-state
       icon="i"
       title="No employees match your filters"
-      message="Try clearing the filters or create a new employee.">
+      message="Try clearing the filters or create a new employee."
+    >
       <a routerLink="/employees/new" class="btn btn-primary mt-3">Create employee</a>
     </app-empty-state>
   } @else {
@@ -59,17 +63,32 @@
                 </a>
               </td>
               <td class="hidden-portrait">{{ e.email }}</td>
-              <td><span class="badge role">{{ e.role }}</span></td>
               <td>
-                <span class="badge" [class.active]="e.status === 'ACTIVE'" [class.inactive]="e.status === 'INACTIVE'">
+                <span class="badge role">{{ e.role }}</span>
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  [class.active]="e.status === 'ACTIVE'"
+                  [class.inactive]="e.status === 'INACTIVE'"
+                >
                   {{ e.status }}
                 </span>
               </td>
               <td class="text-right">
-                <a [routerLink]="['/employees', e.employeeId, 'edit']" class="btn btn-secondary btn-sm" data-cy="edit-employee">
+                <a
+                  [routerLink]="['/employees', e.employeeId, 'edit']"
+                  class="btn btn-secondary btn-sm"
+                  data-cy="edit-employee"
+                >
                   Edit
                 </a>
-                <button type="button" class="btn btn-ghost btn-sm" (click)="requestDelete(e)" data-cy="delete-employee">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  (click)="requestDelete(e)"
+                  data-cy="delete-employee"
+                >
                   Delete
                 </button>
               </td>
@@ -89,17 +108,27 @@
       <span class="text-muted">{{ pageSummary() }}</span>
       <div class="row">
         <label for="size" class="text-muted">Rows</label>
-        <select id="size" [value]="size()" (change)="onPageSize(+($any($event.target).value))">
+        <select id="size" [value]="size()" (change)="onPageSize(+$any($event.target).value)">
           <option [value]="5">5</option>
           <option [value]="10">10</option>
           <option [value]="25">25</option>
         </select>
-        <button class="btn btn-secondary btn-sm" type="button"
-                [disabled]="page() <= 1"
-                (click)="onPage(-1, totalPages())">Prev</button>
-        <button class="btn btn-secondary btn-sm" type="button"
-                [disabled]="page() >= totalPages()"
-                (click)="onPage(1, totalPages())">Next</button>
+        <button
+          class="btn btn-secondary btn-sm"
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="onPage(-1, totalPages())"
+        >
+          Prev
+        </button>
+        <button
+          class="btn btn-secondary btn-sm"
+          type="button"
+          [disabled]="page() >= totalPages()"
+          (click)="onPage(1, totalPages())"
+        >
+          Next
+        </button>
       </div>
     </footer>
   }
@@ -108,9 +137,18 @@
 <app-confirm-dialog
   [open]="confirmOpen()"
   [title]="'Delete employee?'"
-  [message]="(pendingDelete() ? 'This will permanently remove ' + pendingDelete()!.firstName + ' ' + pendingDelete()!.lastName + ' and close all of their accounts.' : '')"
+  [message]="
+    pendingDelete()
+      ? 'This will permanently remove ' +
+        pendingDelete()!.firstName +
+        ' ' +
+        pendingDelete()!.lastName +
+        ' and close all of their accounts.'
+      : ''
+  "
   confirmLabel="Delete"
   cancelLabel="Cancel"
   [destructive]="true"
   (confirmed)="confirmDelete()"
-  (cancelled)="cancelDelete()"></app-confirm-dialog>
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>

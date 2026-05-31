@@ -25,6 +25,17 @@ const AuditService = require('./audit.service');
 
 const nowIso = () => new Date().toISOString();
 
+/**
+ * Emit the full model to the server log on a write. Kept here (not in the
+ * controller) because this is where the persisted model is fully formed -
+ * with generated id, defaults applied and timestamps set. The correlation id
+ * is included so the line ties back to the matching morgan HTTP access line.
+ */
+const logModel = (action, model, context) => {
+  const cid = context?.correlationId || 'n/a';
+  console.log(`[employee] ${action} cid=${cid}\n${JSON.stringify(model, null, 2)}`);
+};
+
 const EmployeeService = {
   // --- Queries -------------------------------------------------------------
 
@@ -110,6 +121,7 @@ const EmployeeService = {
     };
     EmployeeRepository.insert(employee);
     AuditService.recordEmployeeCreated(employee, context);
+    logModel('CREATE', employee, context);
     return employee;
   },
 
@@ -126,6 +138,7 @@ const EmployeeService = {
       updatedAt: nowIso()
     });
     AuditService.recordEmployeeUpdated(before, after, context);
+    logModel('UPDATE', after, context);
     return after;
   },
 
@@ -134,6 +147,7 @@ const EmployeeService = {
     if (!before) return null;
     const after = EmployeeRepository.update(employeeId, { ...patch, updatedAt: nowIso() });
     AuditService.recordEmployeeUpdated(before, after, context);
+    logModel('UPDATE', after, context);
     return after;
   },
 

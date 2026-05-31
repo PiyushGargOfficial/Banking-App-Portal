@@ -1,5 +1,5 @@
 @if (loading()) {
-  <div class="card row" style="justify-content:center;">
+  <div class="card row" style="justify-content: center">
     <app-loading-spinner label="Loading employee"></app-loading-spinner>
     <span class="text-muted">Loading employee...</span>
   </div>
@@ -10,12 +10,21 @@
     template terse and lets the type-checker narrow `emp` to non-null.
   -->
   @if (employee(); as emp) {
-    <app-page-header
-      [title]="emp.firstName + ' ' + emp.lastName"
-      [subtitle]="emp.email">
+    <app-page-header [title]="emp.firstName + ' ' + emp.lastName" [subtitle]="emp.email">
       <a routerLink="/employees" class="btn btn-ghost">Back</a>
-      <a [routerLink]="['/employees', emp.employeeId, 'edit']" class="btn btn-secondary" data-cy="edit-employee">Edit</a>
-      <button type="button" class="btn btn-danger" (click)="requestDelete()" data-cy="delete-employee" [disabled]="deleting()">
+      <a
+        [routerLink]="['/employees', emp.employeeId, 'edit']"
+        class="btn btn-secondary"
+        data-cy="edit-employee"
+        >Edit</a
+      >
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="requestDelete()"
+        data-cy="delete-employee"
+        [disabled]="deleting()"
+      >
         Delete
       </button>
     </app-page-header>
@@ -29,10 +38,19 @@
         <div>
           <div class="text-muted">Status</div>
           <div class="row">
-            <span class="badge" [class.active]="emp.status === 'ACTIVE'" [class.inactive]="emp.status === 'INACTIVE'">
+            <span
+              class="badge"
+              [class.active]="emp.status === 'ACTIVE'"
+              [class.inactive]="emp.status === 'INACTIVE'"
+            >
               {{ emp.status }}
             </span>
-            <button type="button" class="btn btn-ghost btn-sm" (click)="toggleStatus(emp)" data-cy="toggle-status">
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm"
+              (click)="toggleStatus(emp)"
+              data-cy="toggle-status"
+            >
               Mark {{ emp.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
             </button>
           </div>
@@ -57,12 +75,19 @@
     <app-confirm-dialog
       [open]="confirmOpen()"
       title="Delete employee?"
-      [message]="'This will permanently remove ' + emp.firstName + ' ' + emp.lastName + ' and close all of their accounts.'"
+      [message]="
+        'This will permanently remove ' +
+        emp.firstName +
+        ' ' +
+        emp.lastName +
+        ' and close all of their accounts.'
+      "
       confirmLabel="Delete"
       cancelLabel="Cancel"
       [destructive]="true"
       (confirmed)="confirmDelete(emp)"
-      (cancelled)="cancelDelete()"></app-confirm-dialog>
+      (cancelled)="cancelDelete()"
+    ></app-confirm-dialog>
   } @else {
     <div class="card">
       <p>Employee not found.</p>

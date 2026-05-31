@@ -28,39 +28,64 @@ import { MoneyPipe } from '@shared/pipes/money.pipe';
       </div>
     </div>
   `,
-  styles: [`
-    .summary-grid {
-      display: grid;
-      /* Cap each tile so the 2-3 subtotal tiles don't stretch into a
+  styles: [
+    `
+      .summary-grid {
+        display: grid;
+        /* Cap each tile so the 2-3 subtotal tiles don't stretch into a
          wall of whitespace on 2K / 4K monitors. */
-      grid-template-columns: repeat(auto-fit, minmax(180px, 280px));
-      justify-content: start;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .tile {
-      background: var(--color-primary-soft);
-      border-radius: var(--radius-md);
-      padding: 12px 16px;
-    }
-    .tile--total {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-    }
-    .tile__label { font-size: 12px; color: var(--color-text-muted); }
-    .tile__value { font-size: 18px; font-weight: 600; margin-top: 4px; }
-    .tile__note { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
+        grid-template-columns: repeat(auto-fit, minmax(180px, 280px));
+        justify-content: start;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .tile {
+        background: var(--color-primary-soft);
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
+      }
+      .tile--total {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+      }
+      .tile__label {
+        font-size: 12px;
+        color: var(--color-text-muted);
+      }
+      .tile__value {
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .tile__note {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        margin-top: 4px;
+      }
 
-    /* Phone: drop the auto-fit minimum so two tiles always sit per row
+      /* Phone: drop the auto-fit minimum so two tiles always sit per row
        on a ~400px-wide container, and tighten the padding / value size. */
-    @media (max-width: 480px) {
-      .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-      .tile { padding: 10px 12px; }
-      .tile__label { font-size: 11px; }
-      .tile__value { font-size: 16px; }
-      .tile__note { font-size: 10px; }
-    }
-  `]
+      @media (max-width: 480px) {
+        .summary-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        .tile {
+          padding: 10px 12px;
+        }
+        .tile__label {
+          font-size: 11px;
+        }
+        .tile__value {
+          font-size: 16px;
+        }
+        .tile__note {
+          font-size: 10px;
+        }
+      }
+    `
+  ]
 })
 export class AccountSummaryComponent {
   @Input() subtotals: Record<string, number> = {};

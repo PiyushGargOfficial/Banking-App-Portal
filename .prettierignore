@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+client/.angular/
+
+# Coverage / test artifacts
+coverage/
+**/coverage/
+client/cypress/screenshots/
+client/cypress/videos/
+
+# Lockfiles (managed by npm, not formatted by hand)
+package-lock.json
+**/package-lock.json
+
+# Generated / vendored
+*.min.js
+*.min.css

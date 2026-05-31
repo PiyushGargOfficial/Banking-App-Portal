@@ -1,20 +1,23 @@
 <section class="card" data-cy="audit-log">
   <header class="row spread">
     <div>
-      <h2 style="margin:0;">Audit log</h2>
-      <p class="text-muted" style="margin:4px 0 0;">
-        Every action performed on this employee&apos;s profile and accounts.
-        Append-only - entries can never be edited or removed.
+      <h2 style="margin: 0">Audit log</h2>
+      <p class="text-muted" style="margin: 4px 0 0">
+        Every action performed on this employee&apos;s profile and accounts. Append-only - entries
+        can never be edited or removed.
       </p>
     </div>
     <div class="row">
       @if (total() > 0) {
         <span class="text-muted">{{ total() }} {{ total() === 1 ? 'entry' : 'entries' }}</span>
       }
-      <button type="button" class="btn btn-ghost btn-sm"
-              (click)="refresh()"
-              [disabled]="loading()"
-              data-cy="audit-refresh">
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm"
+        (click)="refresh()"
+        [disabled]="loading()"
+        data-cy="audit-refresh"
+      >
         Refresh
       </button>
     </div>
@@ -22,7 +25,7 @@
 
   <div class="mt-4">
     @if (loading()) {
-      <div class="row" style="justify-content:center; padding: 24px;">
+      <div class="row" style="justify-content: center; padding: 24px">
         <app-loading-spinner label="Loading audit log"></app-loading-spinner>
         <span class="text-muted">Loading audit log...</span>
       </div>
@@ -32,7 +35,8 @@
       <app-empty-state
         icon="-"
         title="No audit entries yet"
-        message="Changes made to this employee or their accounts will be logged here.">
+        message="Changes made to this employee or their accounts will be logged here."
+      >
       </app-empty-state>
     } @else {
       <ol class="audit-list">
@@ -85,7 +89,9 @@
             </div>
 
             <footer class="audit-entry__foot">
-              <span>by <strong>{{ entry.actor }}</strong></span>
+              <span
+                >by <strong>{{ entry.actor }}</strong></span
+              >
               @if (entry.correlationId) {
                 <span class="audit-entry__cid" title="Correlation id">
                   cid: <code>{{ entry.correlationId }}</code>

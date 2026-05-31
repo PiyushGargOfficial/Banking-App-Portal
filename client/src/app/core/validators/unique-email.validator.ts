@@ -1,5 +1,14 @@
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
-import { Observable, debounceTime, distinctUntilChanged, first, map, of, switchMap, catchError } from 'rxjs';
+import {
+  Observable,
+  debounceTime,
+  distinctUntilChanged,
+  first,
+  map,
+  of,
+  switchMap,
+  catchError
+} from 'rxjs';
 import { EmployeeApiService } from '@core/services/employee-api.service';
 
 /**

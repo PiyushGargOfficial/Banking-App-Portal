@@ -26,7 +26,9 @@ export const EMPLOYEES_ROUTES: Routes = [
   {
     path: ':id',
     loadComponent: () =>
-      import('./pages/employee-detail/employee-detail.component').then((m) => m.EmployeeDetailComponent),
+      import('./pages/employee-detail/employee-detail.component').then(
+        (m) => m.EmployeeDetailComponent
+      ),
     title: 'Employee Detail - Banking Admin Portal'
   },
   {

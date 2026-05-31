@@ -31,7 +31,12 @@ export class AccountFacade {
 
   update(
     accountId: string,
-    payload: { accountType: Account['accountType']; currency: Account['currency']; balance: number; status: Account['status'] }
+    payload: {
+      accountType: Account['accountType'];
+      currency: Account['currency'];
+      balance: number;
+      status: Account['status'];
+    }
   ): void {
     this.store.dispatch(AccountPageActions.update({ accountId, payload }));
   }

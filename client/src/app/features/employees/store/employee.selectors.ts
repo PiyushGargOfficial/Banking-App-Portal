@@ -31,10 +31,8 @@ export const selectIsBusy = createSelector(
 );
 
 /** Returns total pages so the pagination control doesn't recompute. */
-export const selectTotalPages = createSelector(
-  selectTotal,
-  selectSize,
-  (total, size) => Math.max(1, Math.ceil(total / Math.max(1, size)))
+export const selectTotalPages = createSelector(selectTotal, selectSize, (total, size) =>
+  Math.max(1, Math.ceil(total / Math.max(1, size)))
 );
 
 /** Single-employee lookup; useful for sub-views that only know the id. */

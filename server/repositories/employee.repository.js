@@ -29,9 +29,8 @@ const EmployeeRepository = {
   findByEmail(email, excludeId) {
     const lower = email.toLowerCase();
     return (
-      store.employees.find(
-        (e) => e.email.toLowerCase() === lower && e.employeeId !== excludeId
-      ) || null
+      store.employees.find((e) => e.email.toLowerCase() === lower && e.employeeId !== excludeId) ||
+      null
     );
   },
 

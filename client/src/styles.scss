@@ -37,33 +37,33 @@
 :root {
   /* -------- Brand palette ------------------------------------------------- */
   /* TD Green - the most recognisable element of TD's visual identity. */
-  --color-primary:      #008A00;   /* TD Green */
-  --color-primary-dark: #006B00;   /* Hover / pressed */
-  --color-primary-deep: #004F00;   /* For text on light green tints */
-  --color-primary-soft: #E8F5E8;   /* Pill backgrounds, badge fill */
-  --color-primary-tint: #F2F9F2;   /* Hero / banner backgrounds */
+  --color-primary: #008a00; /* TD Green */
+  --color-primary-dark: #006b00; /* Hover / pressed */
+  --color-primary-deep: #004f00; /* For text on light green tints */
+  --color-primary-soft: #e8f5e8; /* Pill backgrounds, badge fill */
+  --color-primary-tint: #f2f9f2; /* Hero / banner backgrounds */
 
   /* Secondary accent (TD often uses a muted yellow for highlights). */
-  --color-accent:       #FFC72C;
-  --color-accent-soft:  #FFF6DA;
+  --color-accent: #ffc72c;
+  --color-accent-soft: #fff6da;
 
   /* Status colours, picked to harmonise with TD Green. */
-  --color-danger:       #C7102E;   /* TD-like red */
-  --color-danger-soft:  #FBE7EB;
-  --color-success:      #007D32;
-  --color-success-soft: #E5F4EB;
-  --color-warn:         #B45309;
-  --color-warn-soft:    #FFF4E0;
+  --color-danger: #c7102e; /* TD-like red */
+  --color-danger-soft: #fbe7eb;
+  --color-success: #007d32;
+  --color-success-soft: #e5f4eb;
+  --color-warn: #b45309;
+  --color-warn-soft: #fff4e0;
 
   /* Neutral / surface ----------------------------------------------------- */
-  --color-text:         #1C1C1C;   /* High-contrast body text */
-  --color-text-muted:   #555E66;   /* Secondary text, captions */
-  --color-text-subtle:  #6F7780;   /* Helper text, placeholders */
-  --color-border:       #D6D9DC;   /* Dividers */
-  --color-border-soft:  #E9EBEE;
-  --color-bg:           #F5F6F8;   /* Page background - warm neutral */
-  --color-surface:      #FFFFFF;
-  --color-surface-alt:  #FAFBFC;   /* Subtle row hover, table stripes */
+  --color-text: #1c1c1c; /* High-contrast body text */
+  --color-text-muted: #555e66; /* Secondary text, captions */
+  --color-text-subtle: #6f7780; /* Helper text, placeholders */
+  --color-border: #d6d9dc; /* Dividers */
+  --color-border-soft: #e9ebee;
+  --color-bg: #f5f6f8; /* Page background - warm neutral */
+  --color-surface: #ffffff;
+  --color-surface-alt: #fafbfc; /* Subtle row hover, table stripes */
 
   /* -------- Spacing scale (4px base) ------------------------------------- */
   --space-1: 4px;
@@ -85,7 +85,7 @@
   --shadow-lg: 0 6px 18px rgba(28, 28, 28, 0.08);
 
   /* -------- Typography --------------------------------------------------- */
-  --font-sans:  'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-sans: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-heading: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* -------- Layout ------------------------------------------------------- */
@@ -93,9 +93,12 @@
   --header-h: 64px;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: var(--color-bg);
@@ -112,7 +115,9 @@ a {
   color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
   &:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
@@ -122,7 +127,10 @@ a {
 
 /* TD favours strong, clear headings. Sizes are noticeably larger than the
    previous default so list/detail pages have a banking-site feel. */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   margin: 0 0 var(--space-3);
   font-family: var(--font-heading);
   font-weight: 700;
@@ -130,48 +138,97 @@ h1, h2, h3, h4 {
   letter-spacing: -0.005em;
   line-height: 1.25;
 }
-h1 { font-size: 28px; }
-h2 { font-size: 22px; }
-h3 { font-size: 18px; }
-h4 { font-size: 16px; }
-p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
+h1 {
+  font-size: 28px;
+}
+h2 {
+  font-size: 22px;
+}
+h3 {
+  font-size: 18px;
+}
+h4 {
+  font-size: 16px;
+}
+p {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+}
 
 /* Tablet portrait: dial down headings a notch so titles + actions fit on
    one row without crowding the page-header. */
 @media (max-width: 768px) {
-  h1 { font-size: 24px; }
-  h2 { font-size: 20px; }
-  h3 { font-size: 17px; }
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+  }
+  h3 {
+    font-size: 17px;
+  }
 }
 
 /* Phone: one more step down so long employee names still fit. */
 @media (max-width: 480px) {
-  h1 { font-size: 21px; }
-  h2 { font-size: 18px; }
-  h3 { font-size: 16px; }
-  body { font-size: 14px; }
+  h1 {
+    font-size: 21px;
+  }
+  h2 {
+    font-size: 18px;
+  }
+  h3 {
+    font-size: 16px;
+  }
+  body {
+    font-size: 14px;
+  }
 }
 
 /* Wide-screen tiers - tiny typography scale-up so labels remain legible
    from a normal seating distance on a big monitor. We keep the curve
    gentle - going too large makes the admin tool feel like a hotel kiosk. */
 @media (min-width: 1920px) {
-  body { font-size: 16px; }
-  h1 { font-size: 30px; }
-  h2 { font-size: 24px; }
-  h3 { font-size: 19px; }
+  body {
+    font-size: 16px;
+  }
+  h1 {
+    font-size: 30px;
+  }
+  h2 {
+    font-size: 24px;
+  }
+  h3 {
+    font-size: 19px;
+  }
 }
 @media (min-width: 2560px) {
-  body { font-size: 17px; }
-  h1 { font-size: 32px; }
-  h2 { font-size: 26px; }
-  h3 { font-size: 20px; }
+  body {
+    font-size: 17px;
+  }
+  h1 {
+    font-size: 32px;
+  }
+  h2 {
+    font-size: 26px;
+  }
+  h3 {
+    font-size: 20px;
+  }
 }
 @media (min-width: 3840px) {
-  body { font-size: 18px; }
-  h1 { font-size: 36px; }
-  h2 { font-size: 28px; }
-  h3 { font-size: 22px; }
+  body {
+    font-size: 18px;
+  }
+  h1 {
+    font-size: 36px;
+  }
+  h2 {
+    font-size: 28px;
+  }
+  h3 {
+    font-size: 22px;
+  }
 }
 
 /* Layout primitives ---------------------------------------------------------- */
@@ -184,34 +241,56 @@ p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
 /* Smaller side gutters on laptops < 1280px - they sit edge-to-edge nicely
    without the container ever feeling cramped. */
 @media (max-width: 1024px) {
-  .container { padding: var(--space-5) var(--space-4); }
+  .container {
+    padding: var(--space-5) var(--space-4);
+  }
 }
 @media (max-width: 640px) {
-  .container { padding: var(--space-4) var(--space-3); }
+  .container {
+    padding: var(--space-4) var(--space-3);
+  }
 }
 /* Phone: minimal side padding so cards use the full width of the device. */
 @media (max-width: 480px) {
-  .container { padding: var(--space-3) var(--space-2); }
+  .container {
+    padding: var(--space-3) var(--space-2);
+  }
 }
 
 /* Wide-screen tiers - grow the container cap so 2K / 4K monitors stop
    leaving 1000+px of dead margin on either side. Each step also adds a
    little extra vertical padding so the design breathes proportionally. */
 @media (min-width: 1440px) {
-  :root { --container-max: 1360px; }
-  .container { padding: var(--space-6) var(--space-6); }
+  :root {
+    --container-max: 1360px;
+  }
+  .container {
+    padding: var(--space-6) var(--space-6);
+  }
 }
 @media (min-width: 1920px) {
-  :root { --container-max: 1560px; }
-  .container { padding: var(--space-7) var(--space-7); }
+  :root {
+    --container-max: 1560px;
+  }
+  .container {
+    padding: var(--space-7) var(--space-7);
+  }
 }
 @media (min-width: 2560px) {
-  :root { --container-max: 1760px; }
-  .container { padding: var(--space-7) var(--space-8); }
+  :root {
+    --container-max: 1760px;
+  }
+  .container {
+    padding: var(--space-7) var(--space-8);
+  }
 }
 @media (min-width: 3840px) {
-  :root { --container-max: 2000px; }
-  .container { padding: var(--space-8) var(--space-8); }
+  :root {
+    --container-max: 2000px;
+  }
+  .container {
+    padding: var(--space-8) var(--space-8);
+  }
 }
 
 .card {
@@ -222,28 +301,54 @@ p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
   padding: var(--space-5);
 }
 
-.card + .card { margin-top: var(--space-5); }
+.card + .card {
+  margin-top: var(--space-5);
+}
 
 @media (max-width: 768px) {
-  .card { padding: var(--space-4); }
+  .card {
+    padding: var(--space-4);
+  }
 }
 @media (max-width: 480px) {
-  .card { padding: var(--space-3); border-radius: var(--radius-sm); }
+  .card {
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+  }
 }
 /* Big screens - more generous padding inside cards so the content
    doesn't look stranded inside a vast container. */
 @media (min-width: 1920px) {
-  .card { padding: var(--space-6); }
-  .card + .card { margin-top: var(--space-6); }
+  .card {
+    padding: var(--space-6);
+  }
+  .card + .card {
+    margin-top: var(--space-6);
+  }
 }
 @media (min-width: 2560px) {
-  .card { padding: var(--space-7); }
-  .card + .card { margin-top: var(--space-7); }
+  .card {
+    padding: var(--space-7);
+  }
+  .card + .card {
+    margin-top: var(--space-7);
+  }
 }
 
-.row { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
-.row.spread { justify-content: space-between; }
-.stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.row.spread {
+  justify-content: space-between;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
 
 .grid {
   display: grid;
@@ -261,13 +366,20 @@ p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   line-height: 1.2;
 
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   &:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
@@ -288,14 +400,18 @@ p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
   background: white;
   color: var(--color-primary);
   border-color: var(--color-primary);
-  &:hover:not(:disabled) { background: var(--color-primary-soft); }
+  &:hover:not(:disabled) {
+    background: var(--color-primary-soft);
+  }
 }
 
 .btn-danger {
   background: var(--color-danger);
   color: white;
   border-color: var(--color-danger);
-  &:hover:not(:disabled) { filter: brightness(0.93); }
+  &:hover:not(:disabled) {
+    filter: brightness(0.93);
+  }
 }
 
 .btn-ghost {
@@ -311,17 +427,31 @@ p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
   }
 }
 
-.btn-sm { padding: 5px 12px; font-size: 13px; }
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 13px;
+}
 
 /* Slightly tighter buttons on smaller widths so they don't dominate the
    row when several land in a single action column. */
 @media (max-width: 1024px) {
-  .btn { padding: 8px 16px; }
-  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn {
+    padding: 8px 16px;
+  }
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
 }
 @media (max-width: 480px) {
-  .btn { padding: 7px 14px; font-size: 13px; }
-  .btn-sm { padding: 4px 8px; font-size: 11px; }
+  .btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
 }
 
 /* Forms ---------------------------------------------------------------------- */
@@ -333,18 +463,26 @@ p  { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
 
 /* Tablet portrait keeps 2 columns - iPad portrait (768px) has plenty of room. */
 @media (max-width: 768px) {
-  .form-grid { gap: var(--space-4); }
+  .form-grid {
+    gap: var(--space-4);
+  }
 }
 @media (max-width: 640px) {
-  .form-grid { grid-template-columns: 1fr; }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 /* Big screens: stay 2-column (a 5-field form fits cleanly in three rows)
    but bump the gap so fields don't feel crammed against each other. */
 @media (min-width: 1920px) {
-  .form-grid { gap: var(--space-6); }
+  .form-grid {
+    gap: var(--space-6);
+  }
 }
 @media (min-width: 2560px) {
-  .form-grid { gap: var(--space-7); }
+  .form-grid {
+    gap: var(--space-7);
+  }
 }
 
 label {
@@ -355,7 +493,9 @@ label {
   color: var(--color-text);
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--color-border);
@@ -364,9 +504,13 @@ input, select, textarea {
   font-size: 14px;
   background: white;
   color: var(--color-text);
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 
-  &::placeholder { color: var(--color-text-subtle); }
+  &::placeholder {
+    color: var(--color-text-subtle);
+  }
 
   &:focus {
     border-color: var(--color-primary);
@@ -375,7 +519,9 @@ input, select, textarea {
   }
   &.ng-invalid.ng-touched {
     border-color: var(--color-danger);
-    &:focus { box-shadow: 0 0 0 3px rgba(199, 16, 46, 0.18); }
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(199, 16, 46, 0.18);
+    }
   }
 }
 
@@ -405,7 +551,8 @@ input, select, textarea {
   overflow: hidden;
   border: 1px solid var(--color-border-soft);
 
-  th, td {
+  th,
+  td {
     text-align: left;
     padding: 12px 14px;
     border-bottom: 1px solid var(--color-border-soft);
@@ -420,31 +567,60 @@ input, select, textarea {
     text-transform: uppercase;
     color: var(--color-text-muted);
   }
-  tbody tr:hover { background: var(--color-primary-tint); }
-  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover {
+    background: var(--color-primary-tint);
+  }
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
 }
 
 /* Tighten cell padding on tablet portrait so wider tables fit without
    forcing horizontal scroll for every viewport below the laptop boundary. */
 @media (max-width: 1024px) {
-  .table th, .table td { padding: 10px 10px; font-size: 13px; }
+  .table th,
+  .table td {
+    padding: 10px 10px;
+    font-size: 13px;
+  }
 }
 @media (max-width: 768px) {
-  .table th, .table td { padding: 9px 8px; }
+  .table th,
+  .table td {
+    padding: 9px 8px;
+  }
 }
 @media (max-width: 480px) {
-  .table th, .table td { padding: 8px 6px; font-size: 12px; }
-  .table th { letter-spacing: 0.02em; }
+  .table th,
+  .table td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+  .table th {
+    letter-spacing: 0.02em;
+  }
 }
 
 /* Big screens - rows breathe more, headers a touch bigger. */
 @media (min-width: 1920px) {
-  .table th, .table td { padding: 14px 18px; font-size: 15px; }
-  .table th { font-size: 13px; }
+  .table th,
+  .table td {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+  .table th {
+    font-size: 13px;
+  }
 }
 @media (min-width: 2560px) {
-  .table th, .table td { padding: 16px 22px; font-size: 16px; }
-  .table th { font-size: 14px; }
+  .table th,
+  .table td {
+    padding: 16px 22px;
+    font-size: 16px;
+  }
+  .table th {
+    font-size: 14px;
+  }
 }
 
 /* Horizontal-scroll wrapper. Wider tables (account list with 7 columns)
@@ -466,27 +642,70 @@ input, select, textarea {
   text-transform: uppercase;
   line-height: 1.5;
 }
-.badge.active   { background: var(--color-success-soft); color: var(--color-success); }
-.badge.inactive { background: var(--color-danger-soft);  color: var(--color-danger); }
-.badge.open     { background: var(--color-success-soft); color: var(--color-success); }
-.badge.closed   { background: #EEF0F2;                   color: var(--color-text-muted); }
-.badge.role     { background: var(--color-primary-soft); color: var(--color-primary-deep); }
+.badge.active {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.badge.inactive {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.badge.open {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.badge.closed {
+  background: #eef0f2;
+  color: var(--color-text-muted);
+}
+.badge.role {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
 
 /* Utility classes ------------------------------------------------------------ */
-.text-muted { color: var(--color-text-muted); }
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.mt-3 { margin-top: var(--space-3); }
-.mt-4 { margin-top: var(--space-4); }
-.mt-5 { margin-top: var(--space-5); }
-.mb-3 { margin-bottom: var(--space-3); }
-.full-width { width: 100%; }
+.text-muted {
+  color: var(--color-text-muted);
+}
+.text-right {
+  text-align: right;
+}
+.text-center {
+  text-align: center;
+}
+.mt-3 {
+  margin-top: var(--space-3);
+}
+.mt-4 {
+  margin-top: var(--space-4);
+}
+.mt-5 {
+  margin-top: var(--space-5);
+}
+.mb-3 {
+  margin-bottom: var(--space-3);
+}
+.full-width {
+  width: 100%;
+}
 
 /* Responsive visibility helpers. Applied to table columns and any element
    that's "nice to have" on larger screens but better hidden on smaller. */
-.hidden-mobile  { @media (max-width: 640px) { display: none !important; } }
-.hidden-tablet  { @media (max-width: 1024px) { display: none !important; } }
-.hidden-portrait { @media (max-width: 768px) { display: none !important; } }
+.hidden-mobile {
+  @media (max-width: 640px) {
+    display: none !important;
+  }
+}
+.hidden-tablet {
+  @media (max-width: 1024px) {
+    display: none !important;
+  }
+}
+.hidden-portrait {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
 
 /* Focus reset - banking apps need very visible focus rings for a11y. -------- */
 :focus-visible {
@@ -495,10 +714,17 @@ input, select, textarea {
 }
 
 /* Scrollbar tint to match brand subtly on Chromium-based browsers. ---------- */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: var(--radius-pill);
-  &:hover { background: var(--color-text-subtle); }
+  &:hover {
+    background: var(--color-text-subtle);
+  }
 }
-::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}

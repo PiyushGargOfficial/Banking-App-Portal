@@ -84,7 +84,9 @@ describe('EmployeeFormComponent', () => {
     component.onSubmit();
 
     expect(facade.create).toHaveBeenCalledTimes(1);
-    expect(facade.create).toHaveBeenCalledWith(jasmine.objectContaining({ email: 'jane.doe@x.io' }));
+    expect(facade.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({ email: 'jane.doe@x.io' })
+    );
   });
 
   it('canDeactivate returns true for a pristine form', () => {

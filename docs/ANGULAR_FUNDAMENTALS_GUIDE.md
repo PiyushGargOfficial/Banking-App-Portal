@@ -1,0 +1,401 @@
+# Angular Fundamentals — How This Project Covers Them
+
+> A walkthrough for junior developers. It maps each required Angular concept to
+> the exact place it lives in this codebase, and explains _why_ it's written
+> that way — not just _what_ it does.
+
+Every file reference is a clickable path relative to the repo root. Open the
+file alongside this guide as you read.
+
+---
+
+## Table of contents
+
+1. [Architecture](#1-architecture)
+2. [Parent–Child relationship](#2-parentchild-relationship)
+3. [Forms (Reactive Forms)](#3-forms-reactive-forms)
+4. [HTTP](#4-http)
+5. [Scorecard](#5-scorecard)
+6. [Glossary](#6-glossary)
+
+---
+
+## 1. Architecture
+
+### 1.1 Standalone components & clean folder structure
+
+This project does **not** use the old `NgModule` style. It uses **standalone
+components** (Angular 17+), which is the approach the Angular team now
+recommends. Each component declares its own dependencies in an `imports: [...]`
+array instead of being registered in a module.
+
+The folder layout is the classic, scalable one:
+
+```
+src/app/
+├── core/          ← app-wide singletons: services, interceptors, guards, models, validators
+├── shared/        ← dumb, reusable UI pieces: components + pipes
+└── features/      ← self-contained business areas
+    ├── employees/ ← pages, components, store
+    └── accounts/  ← components, store
+```
+
+**Rule of thumb for where things go:**
+
+| Folder      | Meaning                              | Examples here                                            |
+| ----------- | ------------------------------------ | -------------------------------------------------------- |
+| `core/`     | Used **once**, app-wide              | one logger, one error interceptor, one set of validators |
+| `shared/`   | Reusable **everywhere**              | spinner, money pipe, confirm dialog                      |
+| `features/` | One **slice of the business domain** | everything about employees; everything about accounts    |
+
+Each feature owns its pages, child components, and its own NgRx store. If you
+deleted the `accounts/` folder, nothing in `employees/` would break except the
+single import line — that's the sign of clean boundaries.
+
+### 1.2 Lazy-loaded feature routes
+
+Lazy loading means the browser only downloads the JavaScript for a part of the
+app **when the user actually navigates to it**, keeping the first page load
+fast. This project does it at **two levels**.
+
+**Level 1 — the whole employees feature** in
+[client/src/app/app.routes.ts](../client/src/app/app.routes.ts):
+
+```ts
+{
+  path: 'employees',
+  loadChildren: () =>
+    import('@features/employees/employees.routes').then((m) => m.EMPLOYEES_ROUTES)
+}
+```
+
+`loadChildren` with a dynamic `import()` means the employees code is **not** in
+the initial bundle. It's fetched the first time someone visits `/employees`.
+
+**Level 2 — each page inside the feature** in
+[client/src/app/features/employees/employees.routes.ts](../client/src/app/features/employees/employees.routes.ts):
+
+```ts
+{
+  path: '',
+  loadComponent: () =>
+    import('./pages/employee-list/employee-list.component').then((m) => m.EmployeeListComponent),
+}
+```
+
+So the list, detail, and form pages each ship as separate chunks. Open the
+browser's **Network tab** and navigate around — you'll watch the `.js` chunks
+load one at a time.
+
+> **Gotcha to understand:** the `new` route is declared **before** `:id`. Route
+> matching is top-down, so if `:id` came first, `/employees/new` would match
+> `:id` with `id = "new"`. **Order matters in route tables.**
+
+### 1.3 Reusable component library
+
+[client/src/app/shared/components/](../client/src/app/shared/components/) is the
+"component library." It holds five generic, presentational components:
+
+- `loading-spinner`, `empty-state`, `confirm-dialog`, `notification`, `page-header`
+
+Look at
+[client/src/app/shared/components/page-header/page-header.component.ts](../client/src/app/shared/components/page-header/page-header.component.ts)
+as the model example. It takes a `title`/`subtitle` via `@Input()` and uses
+`<ng-content></ng-content>` to **project** arbitrary buttons into its action
+slot:
+
+```html
+<div class="page-header__actions">
+  <ng-content></ng-content>
+</div>
+```
+
+That's why the detail page can drop "Back / Edit / Delete" buttons into it, and
+the form page can drop a single "Back to list" button into the **same**
+component. The header knows nothing about employees — that's what makes it
+reusable.
+
+There are also reusable **pipes** in
+[client/src/app/shared/pipes/](../client/src/app/shared/pipes/): `money.pipe`
+and `mask-account.pipe` (for showing `••••1234` instead of full account numbers).
+
+### 1.4 Responsive layout
+
+The global stylesheet
+[client/src/styles.scss](../client/src/styles.scss) documents a deliberate
+responsive strategy with breakpoints for phones, tablets, laptops, and 4K
+displays. Individual components also carry their own `@media` rules — e.g. the
+page header collapses its action buttons onto a full-width row under 768px.
+
+---
+
+## 2. Parent–Child relationship
+
+The textbook example the requirements ask for is here:
+**`EmployeeDetail` (parent) renders `AccountList` (child)**.
+
+In
+[client/src/app/features/employees/pages/employee-detail/employee-detail.component.html](../client/src/app/features/employees/pages/employee-detail/employee-detail.component.html):
+
+```html
+<app-account-list class="mt-5" [employeeId]="emp.employeeId"></app-account-list>
+```
+
+The parent passes data **down** to the child via an `@Input()`. In
+[client/src/app/features/accounts/components/account-list/account-list.component.ts](../client/src/app/features/accounts/components/account-list/account-list.component.ts):
+
+```ts
+@Input({ required: true }) employeeId!: string;
+```
+
+**Three things a junior dev should notice:**
+
+**1. `{ required: true }`** — Angular throws a compile error if a parent forgets
+to pass `employeeId`. The `!` ("definite assignment assertion") tells TypeScript
+"trust me, Angular sets this before use."
+
+**2. Input changes are handled, not just the first value.** The child implements
+both `ngOnInit` _and_ `ngOnChanges`:
+
+```ts
+ngOnInit(): void {
+  this.facade.loadForEmployee(this.employeeId);     // first load
+}
+ngOnChanges(changes: SimpleChanges): void {
+  if (changes['employeeId'] && !changes['employeeId'].firstChange) {
+    this.facade.loadForEmployee(this.employeeId);   // reload if parent swaps the id
+  }
+}
+```
+
+The `!firstChange` guard prevents a double-load: `ngOnChanges` fires for the
+_initial_ value too, and `ngOnInit` already handled that one.
+
+**3. This project uses BOTH patterns the requirement offers.** The requirement
+says use `@Input`/`@Output` **OR** a facade with NgRx. This codebase does both:
+
+- **`@Input`/`@Output`** between `AccountList` (parent) → `AccountForm` (child).
+  The form emits results back **up** via `@Output()`:
+
+  ```ts
+  @Output() create = new EventEmitter<AccountCreate>();
+  @Output() update = new EventEmitter<{...}>();
+  @Output() cancel = new EventEmitter<void>();
+  ```
+
+  The parent listens with `(create)="onCreate($event)"`. That's the classic
+  **data-down / events-up** loop.
+
+- **Facade + NgRx** for the actual data. `AccountListComponent` injects
+  `AccountFacade` and reads state through it rather than owning the data itself.
+  The facade is a clean wrapper that hides the store's actions/selectors from the
+  component.
+
+So the wiring is layered: **NgRx supplies the data, `@Input` passes the _id_
+down to the child list, and `@Output` carries form results back up.**
+
+---
+
+## 3. Forms (Reactive Forms)
+
+Both forms use **Reactive Forms** (`FormBuilder` + `ReactiveFormsModule`),
+meaning the form's structure and validation live in the **TypeScript class**,
+not the template. This is the recommended style for anything non-trivial because
+it's testable and type-safe.
+
+### 3.1 One component handles create AND edit
+
+[client/src/app/features/employees/pages/employee-form/employee-form.component.ts](../client/src/app/features/employees/pages/employee-form/employee-form.component.ts)
+handles both `/employees/new` and `/employees/:id/edit`. It checks the route
+param — if there's an `id`, it's edit mode and pre-fills the form via
+`patchValue`.
+
+Note `this.fb.nonNullable.group(...)`: the `nonNullable` builder means `reset()`
+returns fields to their initial value instead of `null`, and the types are
+cleaner (`string` instead of `string | null`).
+
+### 3.2 The required validations — all present
+
+**Required fields** — `Validators.required` on firstName, lastName, email, role,
+status.
+
+**Email format** — `Validators.email`.
+
+**Async unique-email validator that calls the backend** — the most advanced one,
+in
+[client/src/app/core/validators/unique-email.validator.ts](../client/src/app/core/validators/unique-email.validator.ts).
+Walk through _why_ each RxJS operator is there:
+
+```ts
+return of(value).pipe(
+  debounceTime(150), // wait 150ms after typing stops — don't hit the API on every keystroke
+  distinctUntilChanged(), // if the value hasn't changed, don't re-ask
+  switchMap(
+    (
+      email // cancel the previous in-flight request if a new value arrives
+    ) =>
+      api.isEmailAvailable(email, excludeIdProvider()).pipe(
+        map((available) => (available ? null : { emailTaken: true })), // null = valid
+        catchError(() => of(null)) // network error → treat as valid; server re-checks on submit
+      )
+  ),
+  first() // async validators must complete; first() ends the stream
+);
+```
+
+It's a **factory** (a function returning a validator) so it can receive the
+`EmployeeApiService` and an `excludeIdProvider`. The exclude-id part is clever:
+in edit mode, the employee's _own_ email must count as "available," otherwise
+editing anything else on the form would falsely flag the email as taken.
+
+It's wired with `updateOn: 'blur'` so the expensive backend check only runs when
+the user leaves the field, not on every keystroke.
+
+**Numeric balance validation** — on the account form
+([client/src/app/features/accounts/components/account-form/account-form.component.ts](../client/src/app/features/accounts/components/account-form/account-form.component.ts)).
+This is a _stack_ of validators — each checks exactly one thing:
+
+```ts
+balance: [0, [
+  Validators.required,
+  Validators.min(0),                  // no negative balances
+  Validators.max(MAX_BALANCE),        // sanity cap
+  Validators.pattern(/^\d+(\.\d+)?$/),// plain number: no commas, letters, scientific notation
+  maxDecimalPlaces(2)                 // custom: currency precision
+]],
+```
+
+The custom `maxDecimalPlaces(2)` validator
+([client/src/app/core/validators/decimal-places.validator.ts](../client/src/app/core/validators/decimal-places.validator.ts))
+is also a factory. Note its deliberate design: it returns `null` (valid) for
+empty/non-numeric input so it **composes** with `required` and `pattern` instead
+of double-flagging the same field. **Each validator should own exactly one
+failure reason** — that's the convention to copy.
+
+### 3.3 Form-level AND control-level error messages
+
+**Control-level** — under each field, errors render in priority order with
+`@else if` so only one shows at a time:
+
+```html
+@if (form.controls.firstName.touched && form.controls.firstName.errors; as errs) { @if
+(errs['required']) {
+<div class="field-error">First name is required.</div>
+} @else if (errs['whitespaceOnly']) { ... } @else if (errs['minlength']) { ... } }
+```
+
+The `.touched` check means errors don't shout at the user before they've even
+interacted with the field.
+
+**Form-level** — a summary box at the top of the form echoes **server-side**
+validation errors from the API's problem-details response (`err.title`,
+`err.detail`, and an `errors[]` array). This stays visible even if the offending
+field is scrolled off-screen.
+
+**Two more touches worth copying:**
+
+- On submit, `markAllAsTouched()` forces every error to appear at once even if
+  the user never touched some fields.
+- An `unsavedChangesGuard` (`canDeactivate`) warns before navigating away from a
+  dirty form.
+
+---
+
+## 4. HTTP
+
+### 4.1 HttpClient calling the backend
+
+`HttpClient` is provided once at the app root with
+`provideHttpClient(withFetch(), ...)` in
+[client/src/app/app.config.ts](../client/src/app/app.config.ts), and consumed in
+thin per-resource service wrappers.
+
+[client/src/app/core/services/employee-api.service.ts](../client/src/app/core/services/employee-api.service.ts)
+is the model: it centralizes URL building and query-string serialization so
+components/effects never touch raw `HttpClient`. It exercises all five verbs —
+**GET, POST, PUT, PATCH, DELETE**.
+
+### 4.2 HTTP Interceptors — there are TWO, covering all three duties
+
+The requirement asks for an interceptor doing error handling **and/or** logging
+**and/or** correlation-id. This project does **all three**, split across two
+functional interceptors registered **in order** in `app.config.ts`:
+
+```ts
+withInterceptors([correlationIdInterceptor, errorInterceptor]);
+```
+
+**1. Correlation-ID**
+([client/src/app/core/interceptors/correlation-id.interceptor.ts](../client/src/app/core/interceptors/correlation-id.interceptor.ts))
+— attaches a unique `X-Correlation-Id` header to every outbound request by
+**cloning** it:
+
+```ts
+const cloned = req.clone({ setHeaders: { 'X-Correlation-Id': correlationId } });
+```
+
+> **Why clone?** `HttpRequest` objects are **immutable**. You can't mutate them
+> in place — you clone with the change. This id lets you match a client log line
+> to a server log line when debugging a production issue.
+
+**2. Error handling + logging**
+([client/src/app/core/interceptors/error.interceptor.ts](../client/src/app/core/interceptors/error.interceptor.ts))
+— catches every failed response, normalizes the backend's "problem-details" body
+into the internal `ApiError` shape, logs it with the correlation id via
+`LoggerService`, and re-throws so NgRx effects can still react. It even gives a
+friendly message for `status === 0` ("Is the mock server running on port
+3000?").
+
+**The ordering is intentional.** Interceptors run **outermost-first**, so
+correlation-id runs _before_ error-handler — meaning the error handler can read
+the cid that was attached just upstream.
+
+> These are **functional interceptors** (`HttpInterceptorFn`), the modern
+> Angular style — plain functions registered with `withInterceptors([...])`, not
+> the old class-based `HTTP_INTERCEPTORS` provider. Cleaner and tree-shakeable.
+
+---
+
+## 5. Scorecard
+
+| Requirement                                       | Status            | Where                                   |
+| ------------------------------------------------- | ----------------- | --------------------------------------- |
+| Feature modules / standalone + clean folders      | ✅                | `core` / `shared` / `features` split    |
+| Lazy-loaded feature route(s)                      | ✅ **(2 levels)** | `app.routes.ts`, `employees.routes.ts`  |
+| HTML + CSS, responsive                            | ✅                | `styles.scss` + per-component `@media`  |
+| Reusable component library                        | ✅                | `shared/components/`                    |
+| Parent → child (`EmployeeDetail` → `AccountList`) | ✅                | `employee-detail.component.html`        |
+| `@Input`/`@Output` **and** facade/NgRx            | ✅ **(both)**     | account-list ↔ account-form, + facades  |
+| Reactive Forms create/edit                        | ✅                | `employee-form`, `account-form`         |
+| Required validation                               | ✅                | every control                           |
+| Email format                                      | ✅                | `Validators.email`                      |
+| Async unique-email (backend)                      | ✅                | `unique-email.validator.ts`             |
+| Numeric balance validation                        | ✅                | `account-form.component.ts`             |
+| Form-level + control-level errors                 | ✅                | `employee-form.component.html`          |
+| HttpClient                                        | ✅                | `employee-api.service.ts` (all 5 verbs) |
+| Interceptor (error / logging / correlation-id)    | ✅ **(all 3)**    | `core/interceptors/`                    |
+
+**Bottom line:** every item on the "Angular fundamentals" checklist is covered,
+and several are over-delivered — lazy loading at two levels, both parent-child
+patterns, two specialized interceptors, and a validator stack that goes well
+beyond the minimum. The codebase also leans into modern Angular (standalone
+components, signals via `toSignal`, `@if`/`@for` control flow, functional
+interceptors).
+
+---
+
+## 6. Glossary
+
+| Term                     | Plain-English meaning                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| **Standalone component** | A component that declares its own imports, with no `NgModule` needed.                                   |
+| **Lazy loading**         | Only downloading a chunk of code when the user navigates to it.                                         |
+| **`@Input()`**           | A property a parent component sets on a child (data flows **down**).                                    |
+| **`@Output()`**          | An `EventEmitter` a child uses to notify its parent (events flow **up**).                               |
+| **Facade**               | A thin service that hides NgRx store details behind simple methods/observables.                         |
+| **Reactive Form**        | A form defined in TypeScript (`FormBuilder`) rather than the template.                                  |
+| **Validator factory**    | A function that _returns_ a validator, so the validator can be configured (e.g. `maxDecimalPlaces(2)`). |
+| **Async validator**      | A validator that returns an Observable/Promise — used for checks that need the server.                  |
+| **Interceptor**          | A function that sees every HTTP request/response and can modify or react to it.                         |
+| **Correlation ID**       | A unique id added to a request so client and server logs can be matched up.                             |
+| **`ng-content`**         | A slot where a parent can project arbitrary markup into a child component.                              |

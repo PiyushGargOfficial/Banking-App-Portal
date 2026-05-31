@@ -1,8 +1,27 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  inject
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Observable, of } from 'rxjs';
-import { ACCOUNT_STATUSES, ACCOUNT_TYPES, Account, AccountCreate, AccountType, CURRENCIES, Currency, AccountStatus } from '@core/models/account.model';
+import {
+  ACCOUNT_STATUSES,
+  ACCOUNT_TYPES,
+  Account,
+  AccountCreate,
+  AccountType,
+  CURRENCIES,
+  Currency,
+  AccountStatus
+} from '@core/models/account.model';
 import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/loading-spinner.component';
 import { maxDecimalPlaces } from '@core/validators/decimal-places.validator';
 
@@ -36,20 +55,32 @@ const MAX_BALANCE = 9_999_999_999.99;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, AsyncPipe, DecimalPipe, LoadingSpinnerComponent],
   template: `
-    <form class="account-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate data-cy="account-form">
+    <form
+      class="account-form"
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      novalidate
+      data-cy="account-form"
+    >
       <div class="form-grid">
-
         <div>
           <label for="acc-number">Account number *</label>
-          <input id="acc-number" type="text" inputmode="numeric"
-                 formControlName="accountNumber"
-                 [readonly]="!!existing"
-                 maxlength="19" data-cy="acc-number" />
+          <input
+            id="acc-number"
+            type="text"
+            inputmode="numeric"
+            formControlName="accountNumber"
+            [readonly]="!!existing"
+            maxlength="19"
+            data-cy="acc-number"
+          />
           @if (form.controls.accountNumber.touched && form.controls.accountNumber.errors; as errs) {
             @if (errs['required']) {
               <div class="field-error">Account number is required.</div>
             } @else if (errs['pattern']) {
-              <div class="field-error">Account number must be 8-19 digits with no spaces or symbols.</div>
+              <div class="field-error">
+                Account number must be 8-19 digits with no spaces or symbols.
+              </div>
             }
           }
         </div>
@@ -57,9 +88,13 @@ const MAX_BALANCE = 9_999_999_999.99;
         <div>
           <label for="acc-type">Type *</label>
           <select id="acc-type" formControlName="accountType" data-cy="acc-type">
-            @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
+            @for (t of types; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
           </select>
-          @if (form.controls.accountType.touched && form.controls.accountType.errors?.['required']) {
+          @if (
+            form.controls.accountType.touched && form.controls.accountType.errors?.['required']
+          ) {
             <div class="field-error">Account type is required.</div>
           }
         </div>
@@ -67,7 +102,9 @@ const MAX_BALANCE = 9_999_999_999.99;
         <div>
           <label for="acc-currency">Currency *</label>
           <select id="acc-currency" formControlName="currency" data-cy="acc-currency">
-            @for (c of currencies; track c) { <option [value]="c">{{ c }}</option> }
+            @for (c of currencies; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
           </select>
           @if (form.controls.currency.touched && form.controls.currency.errors?.['required']) {
             <div class="field-error">Currency is required.</div>
@@ -76,17 +113,28 @@ const MAX_BALANCE = 9_999_999_999.99;
 
         <div>
           <label for="acc-balance">Balance *</label>
-          <input id="acc-balance" type="number" step="0.01" min="0" [max]="MAX_BALANCE"
-                 formControlName="balance" data-cy="acc-balance" />
+          <input
+            id="acc-balance"
+            type="number"
+            step="0.01"
+            min="0"
+            [max]="MAX_BALANCE"
+            formControlName="balance"
+            data-cy="acc-balance"
+          />
           @if (form.controls.balance.touched && form.controls.balance.errors; as errs) {
             @if (errs['required']) {
               <div class="field-error">Balance is required.</div>
             } @else if (errs['min']) {
               <div class="field-error">Balance cannot be negative.</div>
             } @else if (errs['max']) {
-              <div class="field-error">Balance cannot exceed {{ MAX_BALANCE | number: '1.2-2' }}.</div>
+              <div class="field-error">
+                Balance cannot exceed {{ MAX_BALANCE | number: '1.2-2' }}.
+              </div>
             } @else if (errs['pattern']) {
-              <div class="field-error">Balance must be a plain number (no commas, letters or scientific notation).</div>
+              <div class="field-error">
+                Balance must be a plain number (no commas, letters or scientific notation).
+              </div>
             } @else if (errs['maxDecimalPlaces']) {
               <div class="field-error">Balance can have at most 2 decimal places.</div>
             }
@@ -97,7 +145,9 @@ const MAX_BALANCE = 9_999_999_999.99;
           <div>
             <label for="acc-status">Status *</label>
             <select id="acc-status" formControlName="status" data-cy="acc-status">
-              @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+              @for (s of statuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
             </select>
             @if (form.controls.status.touched && form.controls.status.errors?.['required']) {
               <div class="field-error">Status is required.</div>
@@ -109,14 +159,20 @@ const MAX_BALANCE = 9_999_999_999.99;
       <div class="row spread mt-4">
         <span class="text-muted">* required</span>
         <div class="row">
-          <button type="button" class="btn btn-ghost" (click)="cancel.emit()" data-cy="acc-cancel">Cancel</button>
+          <button type="button" class="btn btn-ghost" (click)="cancel.emit()" data-cy="acc-cancel">
+            Cancel
+          </button>
           <!--
             Submit stays clickable on an invalid form so a tap surfaces every
             error at once via markAllAsTouched(). Only disable while a save
             is in flight to avoid duplicate submissions.
           -->
-          <button type="submit" class="btn btn-primary"
-                  [disabled]="(saving$ | async)" data-cy="acc-submit">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="saving$ | async"
+            data-cy="acc-submit"
+          >
             @if (saving$ | async) {
               <app-loading-spinner [size]="14" label="Saving"></app-loading-spinner>
               Saving...
@@ -128,13 +184,23 @@ const MAX_BALANCE = 9_999_999_999.99;
       </div>
     </form>
   `,
-  styles: [`
-    :host { display: block; }
-    .account-form { padding: 16px; background: var(--color-bg); border-radius: var(--radius-md); }
-    @media (max-width: 480px) {
-      .account-form { padding: 12px; }
-    }
-  `]
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+      .account-form {
+        padding: 16px;
+        background: var(--color-bg);
+        border-radius: var(--radius-md);
+      }
+      @media (max-width: 480px) {
+        .account-form {
+          padding: 12px;
+        }
+      }
+    `
+  ]
 })
 export class AccountFormComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
@@ -146,7 +212,10 @@ export class AccountFormComponent implements OnInit, OnChanges {
 
   @Output() create = new EventEmitter<AccountCreate>();
   @Output() update = new EventEmitter<{
-    accountType: AccountType; currency: Currency; balance: number; status: AccountStatus;
+    accountType: AccountType;
+    currency: Currency;
+    balance: number;
+    status: AccountStatus;
   }>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -157,24 +226,28 @@ export class AccountFormComponent implements OnInit, OnChanges {
   protected readonly MAX_BALANCE = MAX_BALANCE;
 
   protected readonly form = this.fb.nonNullable.group({
-    accountNumber: ['', [
-      Validators.required,
-      Validators.pattern(/^\d{8,19}$/)
-    ]],
+    accountNumber: ['', [Validators.required, Validators.pattern(/^\d{8,19}$/)]],
     accountType: ['CHECKING' as AccountType, [Validators.required]],
     currency: ['CAD' as Currency, [Validators.required]],
-    balance: [0, [
-      Validators.required,
-      Validators.min(0),
-      Validators.max(MAX_BALANCE),
-      Validators.pattern(/^\d+(\.\d+)?$/),
-      maxDecimalPlaces(2)
-    ]],
+    balance: [
+      0,
+      [
+        Validators.required,
+        Validators.min(0),
+        Validators.max(MAX_BALANCE),
+        Validators.pattern(/^\d+(\.\d+)?$/),
+        maxDecimalPlaces(2)
+      ]
+    ],
     status: ['OPEN' as AccountStatus, [Validators.required]]
   });
 
-  ngOnInit(): void { this.applyExisting(); }
-  ngOnChanges(changes: SimpleChanges): void { if (changes['existing']) this.applyExisting(); }
+  ngOnInit(): void {
+    this.applyExisting();
+  }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['existing']) this.applyExisting();
+  }
 
   private applyExisting(): void {
     if (this.existing) {

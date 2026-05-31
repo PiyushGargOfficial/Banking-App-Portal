@@ -66,7 +66,9 @@ describe('Employee filters', () => {
 
         // No overlap, no gaps. With + without should cover the whole list.
         cy.dataCy('filter-accounts').select(''); // back to "all"
-        cy.dataCy('employee-row').its('length').should('eq', withCount + withoutCount);
+        cy.dataCy('employee-row')
+          .its('length')
+          .should('eq', withCount + withoutCount);
       });
     });
   });

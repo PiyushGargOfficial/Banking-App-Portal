@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  signal
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -52,12 +60,12 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   // toSignal() automatically tears down its subscription when the component
   // is destroyed (via DestroyRef). The store still owns the data; we just
   // expose it to the template via a synchronous, change-detection-aware API.
-  protected readonly items       = toSignal(this.facade.items$,       { initialValue: [] as Employee[] });
-  protected readonly loading     = toSignal(this.facade.loadingList$, { initialValue: false });
-  protected readonly total       = toSignal(this.facade.total$,       { initialValue: 0 });
-  protected readonly page        = toSignal(this.facade.page$,        { initialValue: 1 });
-  protected readonly size        = toSignal(this.facade.size$,        { initialValue: 10 });
-  protected readonly totalPages  = toSignal(this.facade.totalPages$,  { initialValue: 1 });
+  protected readonly items = toSignal(this.facade.items$, { initialValue: [] as Employee[] });
+  protected readonly loading = toSignal(this.facade.loadingList$, { initialValue: false });
+  protected readonly total = toSignal(this.facade.total$, { initialValue: 0 });
+  protected readonly page = toSignal(this.facade.page$, { initialValue: 1 });
+  protected readonly size = toSignal(this.facade.size$, { initialValue: 10 });
+  protected readonly totalPages = toSignal(this.facade.totalPages$, { initialValue: 1 });
 
   // --- Derived view-model (computed) ----------------------------------------
   // The pagination footer string. Recomputes only when one of its inputs
@@ -71,9 +79,12 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   // showing right now. signal() gives us granular updates without the
   // ceremony of a feature slice.
   protected readonly query = signal<EmployeeQuery>({
-    page: 1, size: 10, sortBy: 'lastName', sortDir: 'asc'
+    page: 1,
+    size: 10,
+    sortBy: 'lastName',
+    sortDir: 'asc'
   });
-  protected readonly confirmOpen   = signal(false);
+  protected readonly confirmOpen = signal(false);
   protected readonly pendingDelete = signal<Employee | null>(null);
 
   ngOnInit(): void {

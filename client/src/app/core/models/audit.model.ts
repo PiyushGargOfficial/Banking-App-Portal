@@ -10,13 +10,7 @@
 //
 // The component layer pattern-matches on `action` to render the right detail.
 
-export type AuditAction =
-  | 'CREATE'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'CLOSE'
-  | 'REOPEN'
-  | 'CASCADE_CLOSE';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'CLOSE' | 'REOPEN' | 'CASCADE_CLOSE';
 
 export type AuditResource = 'Employee' | 'Account';
 

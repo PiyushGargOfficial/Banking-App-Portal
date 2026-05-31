@@ -75,7 +75,14 @@ describe('EmployeeService.remove - cascade behaviour', () => {
   it('flips every OPEN account owned by the employee to CLOSED', () => {
     store.employees.push(makeEmployee({ employeeId: 'emp-a' }));
     store.accounts.push(makeAccount({ accountId: 'acc-a', employeeId: 'emp-a', status: 'OPEN' }));
-    store.accounts.push(makeAccount({ accountId: 'acc-b', employeeId: 'emp-a', status: 'OPEN', accountNumber: '4023600000000002' }));
+    store.accounts.push(
+      makeAccount({
+        accountId: 'acc-b',
+        employeeId: 'emp-a',
+        status: 'OPEN',
+        accountNumber: '4023600000000002'
+      })
+    );
 
     EmployeeService.remove('emp-a', ctx);
 
@@ -85,8 +92,15 @@ describe('EmployeeService.remove - cascade behaviour', () => {
 
   it('does NOT emit a CASCADE_CLOSE audit entry for accounts already CLOSED', () => {
     store.employees.push(makeEmployee({ employeeId: 'emp-mix' }));
-    store.accounts.push(makeAccount({ accountId: 'open',   employeeId: 'emp-mix', status: 'OPEN'   }));
-    store.accounts.push(makeAccount({ accountId: 'closed', employeeId: 'emp-mix', status: 'CLOSED', accountNumber: '4023600000000003' }));
+    store.accounts.push(makeAccount({ accountId: 'open', employeeId: 'emp-mix', status: 'OPEN' }));
+    store.accounts.push(
+      makeAccount({
+        accountId: 'closed',
+        employeeId: 'emp-mix',
+        status: 'CLOSED',
+        accountNumber: '4023600000000003'
+      })
+    );
 
     EmployeeService.remove('emp-mix', ctx);
 
@@ -138,9 +152,14 @@ describe('EmployeeService.remove - cascade behaviour', () => {
   it('updates the cascaded accounts updatedAt timestamps', () => {
     const oldTimestamp = '2020-01-01T00:00:00.000Z';
     store.employees.push(makeEmployee({ employeeId: 'emp-ts' }));
-    store.accounts.push(makeAccount({
-      accountId: 'acc-ts', employeeId: 'emp-ts', status: 'OPEN', updatedAt: oldTimestamp
-    }));
+    store.accounts.push(
+      makeAccount({
+        accountId: 'acc-ts',
+        employeeId: 'emp-ts',
+        status: 'OPEN',
+        updatedAt: oldTimestamp
+      })
+    );
 
     EmployeeService.remove('emp-ts', ctx);
 
@@ -154,26 +173,44 @@ describe('EmployeeService.remove - cascade behaviour', () => {
 
 describe('EmployeeService.create - domain defaults', () => {
   it('defaults status to ACTIVE when omitted', () => {
-    const created = EmployeeService.create({
-      firstName: 'New', lastName: 'Hire', email: 'new@x.io', role: 'SUPPORT'
-    }, ctx);
+    const created = EmployeeService.create(
+      {
+        firstName: 'New',
+        lastName: 'Hire',
+        email: 'new@x.io',
+        role: 'SUPPORT'
+      },
+      ctx
+    );
 
     expect(created.status).toBe('ACTIVE');
   });
 
   it('trims whitespace off names', () => {
-    const created = EmployeeService.create({
-      firstName: '  Jane  ', lastName: '  Doe  ', email: 'jane@x.io', role: 'MANAGER'
-    }, ctx);
+    const created = EmployeeService.create(
+      {
+        firstName: '  Jane  ',
+        lastName: '  Doe  ',
+        email: 'jane@x.io',
+        role: 'MANAGER'
+      },
+      ctx
+    );
 
     expect(created.firstName).toBe('Jane');
     expect(created.lastName).toBe('Doe');
   });
 
   it('emits a CREATE audit entry attributed to the new employee', () => {
-    const created = EmployeeService.create({
-      firstName: 'A', lastName: 'B', email: 'a@b.io', role: 'ADMIN'
-    }, ctx);
+    const created = EmployeeService.create(
+      {
+        firstName: 'A',
+        lastName: 'B',
+        email: 'a@b.io',
+        role: 'ADMIN'
+      },
+      ctx
+    );
 
     expect(store.auditLog).toHaveLength(1);
     expect(store.auditLog[0]).toMatchObject({
@@ -189,14 +226,44 @@ describe('EmployeeService.create - domain defaults', () => {
 describe('EmployeeService.list - filters + sort + pagination', () => {
   beforeEach(() => {
     store.employees.push(
-      makeEmployee({ employeeId: '1', firstName: 'Aarav',  lastName: 'Sharma',  email: 'a@x.io', role: 'ADMIN',   status: 'ACTIVE' }),
-      makeEmployee({ employeeId: '2', firstName: 'Sara',   lastName: 'Khan',    email: 's@x.io', role: 'MANAGER', status: 'ACTIVE' }),
-      makeEmployee({ employeeId: '3', firstName: 'Liam',   lastName: 'Tremblay',email: 'l@x.io', role: 'SUPPORT', status: 'INACTIVE' }),
-      makeEmployee({ employeeId: '4', firstName: 'Mateo',  lastName: 'Brown',   email: 'm@x.io', role: 'SUPPORT', status: 'ACTIVE' })
+      makeEmployee({
+        employeeId: '1',
+        firstName: 'Aarav',
+        lastName: 'Sharma',
+        email: 'a@x.io',
+        role: 'ADMIN',
+        status: 'ACTIVE'
+      }),
+      makeEmployee({
+        employeeId: '2',
+        firstName: 'Sara',
+        lastName: 'Khan',
+        email: 's@x.io',
+        role: 'MANAGER',
+        status: 'ACTIVE'
+      }),
+      makeEmployee({
+        employeeId: '3',
+        firstName: 'Liam',
+        lastName: 'Tremblay',
+        email: 'l@x.io',
+        role: 'SUPPORT',
+        status: 'INACTIVE'
+      }),
+      makeEmployee({
+        employeeId: '4',
+        firstName: 'Mateo',
+        lastName: 'Brown',
+        email: 'm@x.io',
+        role: 'SUPPORT',
+        status: 'ACTIVE'
+      })
     );
     // 1 + 2 own at least one account; 3 + 4 own none.
     store.accounts.push(makeAccount({ accountId: 'acc-1', employeeId: '1' }));
-    store.accounts.push(makeAccount({ accountId: 'acc-2', employeeId: '2', accountNumber: '4023600000000002' }));
+    store.accounts.push(
+      makeAccount({ accountId: 'acc-2', employeeId: '2', accountNumber: '4023600000000002' })
+    );
   });
 
   it('returns everything when called with no filters', () => {
@@ -217,7 +284,9 @@ describe('EmployeeService.list - filters + sort + pagination', () => {
 
   it('filters by case-insensitive search across name + email', () => {
     expect(EmployeeService.list({ search: 'SARA' }).items.map((e) => e.employeeId)).toEqual(['2']);
-    expect(EmployeeService.list({ search: 'tremblay' }).items.map((e) => e.employeeId)).toEqual(['3']);
+    expect(EmployeeService.list({ search: 'tremblay' }).items.map((e) => e.employeeId)).toEqual([
+      '3'
+    ]);
     expect(EmployeeService.list({ search: 'm@x' }).items.map((e) => e.employeeId)).toEqual(['4']);
   });
 

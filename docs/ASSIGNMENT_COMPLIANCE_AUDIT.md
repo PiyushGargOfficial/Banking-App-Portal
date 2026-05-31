@@ -1,0 +1,284 @@
+# Assignment Compliance Audit — Banking Admin Portal
+
+> A section-by-section check of this project against the **Senior Angular
+> Developer** technical assignment. For each requirement: **what's present and
+> how**, with file references — and, where relevant, **what's missing or thin and
+> why it matters**.
+
+**Headline:** Every **mandatory** requirement is implemented, and **all three
+optional bonus items** are present too. The only findings are a handful of
+**optional / depth** observations (mostly around accessibility), called out in
+[Section 10](#10-genuine-gaps--thin-spots).
+
+Legend: ✅ fully present · 🟡 present but could go deeper · ❌ missing
+
+---
+
+## Table of contents
+
+1. [Employee Management (CRUD)](#1-employee-management-crud)
+2. [Account Management](#2-account-management-linked-to-employee)
+3. [Backend REST API — all HTTP methods](#3-backend-rest-api--all-http-methods)
+4. [Angular fundamentals](#4-angular-fundamentals)
+5. [State management (NgRx)](#5-state-management-ngrx)
+6. [Security & quality](#6-security--quality)
+7. [Testing](#7-testing)
+8. [Deliverables (README)](#8-deliverables-readme)
+9. [Bonus ideas](#9-bonus-ideas)
+10. [Genuine gaps & thin spots](#10-genuine-gaps--thin-spots)
+11. [Rubric-aligned summary](#11-rubric-aligned-summary)
+
+---
+
+## 1. Employee Management (CRUD)
+
+| Requirement | Status | How / Where |
+|---|---|---|
+| Create employee | ✅ | [employee-form.component.ts](../client/src/app/features/employees/pages/employee-form/employee-form.component.ts) → `facade.create()` → POST [employee.controller.js](../server/controllers/employee.controller.js) |
+| View list + details | ✅ | [employee-list.component.ts](../client/src/app/features/employees/pages/employee-list/employee-list.component.ts), [employee-detail.component.ts](../client/src/app/features/employees/pages/employee-detail/employee-detail.component.ts) |
+| Update employee | ✅ | Same form component in edit mode → `facade.update()` → PUT |
+| Delete employee | ✅ | `facade.delete()` → DELETE; service cascade-closes the employee's open accounts |
+| Search/filter by name, email, role, status | ✅ | [employee-filter.component.ts](../client/src/app/features/employees/components/employee-filter/employee-filter.component.ts) (debounced search + role/status selects); query string built in [employee-api.service.ts](../client/src/app/core/services/employee-api.service.ts); server-side filtering in [employee.service.js](../server/services/employee.service.js) |
+| Create/Edit forms with validation & error messaging | ✅ | See [Section 4 – Forms](#forms) |
+| Delete confirmation | ✅ | [confirm-dialog.component.ts](../client/src/app/shared/components/confirm-dialog/confirm-dialog.component.ts) — `role="dialog"`, `aria-modal`, Escape-to-cancel |
+
+**Mandatory fields** — `employeeId`, `firstName` (required), `lastName`
+(required), `email` (required, valid, unique), `role` (ADMIN/SUPPORT/MANAGER),
+`status` (ACTIVE/INACTIVE), and the *optional* `createdAt`/`updatedAt` audit
+fields are all modelled in [employee.model.ts](../client/src/app/core/models/employee.model.ts)
+and shown on the detail page.
+
+**Verdict: ✅ complete.**
+
+---
+
+## 2. Account Management (Linked to Employee)
+
+| Requirement | Status | How / Where |
+|---|---|---|
+| 0..N accounts per employee | ✅ | Nested route `GET /api/employees/:id/accounts`; child component on the detail page |
+| Accounts section on Employee detail | ✅ | `<app-account-list [employeeId]="...">` in [employee-detail.component.html](../client/src/app/features/employees/pages/employee-detail/employee-detail.component.html) |
+| Add account | ✅ | [account-form.component.ts](../client/src/app/features/accounts/components/account-form/account-form.component.ts) → `facade.create()` → POST |
+| Update account (type/status) | ✅ | Same form (edit mode) → `facade.update()` → PUT; also PATCH for status-only |
+| Remove/close account (**soft close**) | ✅ | DELETE maps to `AccountService.close()` which sets `status: CLOSED` (not a hard delete) — [account.service.js](../server/services/account.service.js) |
+| Reopen (bonus behaviour) | ✅ | `facade.patch({ status: 'OPEN' })` when an account is CLOSED |
+| Subtotal + Total balance | ✅ | Selectors `selectSubtotalsByCurrency` + `selectTotalBalance` in [account.selectors.ts](../client/src/app/features/accounts/store/account.selectors.ts); rendered by [account-summary.component.ts](../client/src/app/features/accounts/components/account-summary/account-summary.component.ts) |
+
+**Mandatory fields** — confirmed in
+[account.model.ts](../client/src/app/core/models/account.model.ts):
+`accountId`, `employeeId` (FK), `accountNumber` (unique), `accountType`
+(CHECKING/SAVINGS), `currency` (CAD/USD), `balance`, `status` (OPEN/CLOSED), and
+**both** `createdAt` *and* `updatedAt`.
+
+- **Account number masked except last 4** → [mask-account.pipe.ts](../client/src/app/shared/pipes/mask-account.pipe.ts), used in the list and the close-confirm dialog (`************7766`).
+- **balance ≥ 0, 2 decimals** → enforced both client-side ([decimal-places.validator.ts](../client/src/app/core/validators/decimal-places.validator.ts), `Validators.min(0)`) and server-side ([account.validator.js](../server/validators/account.validator.js)).
+- **Subtotal nuance:** subtotals are grouped **per currency** (you can't sum CAD + USD), and the total tile is explicitly labelled "not FX converted" — a thoughtful touch.
+
+**Verdict: ✅ complete** (and exceeds spec with PATCH + reopen).
+
+---
+
+## 3. Backend REST API — all HTTP methods
+
+The spec **requires every HTTP verb**. All five are in active use:
+
+| Verb | Endpoint | Where |
+|---|---|---|
+| GET | `/api/employees`, `/api/employees/:id`, `/api/employees/:id/accounts`, `/api/accounts/:id` | [employee.routes.js](../server/routes/employee.routes.js), [account.routes.js](../server/routes/account.routes.js) |
+| POST | `/api/employees`, `/api/employees/:id/accounts` | same |
+| PUT | `/api/employees/:id`, `/api/accounts/:id` | same |
+| PATCH | `/api/employees/:id` (status), `/api/accounts/:id` (partial) | same |
+| DELETE | `/api/employees/:id`, `/api/accounts/:id` (soft close) | same |
+
+The suggested contract only listed PUT/DELETE for accounts; this project **adds
+PATCH** for partial account updates — more than asked.
+
+**Verdict: ✅ complete, exceeds spec.**
+
+---
+
+## 4. Angular fundamentals
+
+### Architecture ✅
+- **Standalone + feature routes** (the spec's "OR" option) — no NgModules. Clean `core / shared / features` split.
+- **Lazy loading at two levels:** `loadChildren` for the employees feature ([app.routes.ts](../client/src/app/app.routes.ts)) *and* `loadComponent` per page ([employees.routes.ts](../client/src/app/features/employees/employees.routes.ts)).
+- **Reusable component library:** [shared/components/](../client/src/app/shared/components/) (spinner, empty-state, confirm-dialog, notification, page-header) + shared pipes.
+- **Responsive CSS:** extensive media-query strategy in [styles.scss](../client/src/styles.scss) (480/640/768/1024px reductions + large-screen tiers) plus component-level `@media` rules.
+
+### Parent–Child relationship ✅
+The spec asks for `@Input`/`@Output` **OR** an NgRx facade. **This project does
+both:** `EmployeeDetail` passes `employeeId` **down** to `AccountList` via
+`@Input`; `AccountForm` emits results **up** via `@Output`; and data itself flows
+through NgRx **facades**. Layered correctly.
+
+### Forms ✅ {#forms}
+Reactive forms (`FormBuilder.nonNullable`) for both create and edit:
+
+| Required validation | Status | Where |
+|---|---|---|
+| Required fields | ✅ | `Validators.required` on all key controls |
+| Email format | ✅ | `Validators.email` |
+| **Async unique-email (calls backend)** | ✅ | [unique-email.validator.ts](../client/src/app/core/validators/unique-email.validator.ts) — debounced, `updateOn: 'blur'`, excludes own id when editing |
+| Numeric balance validation | ✅ | `min(0)`, `max`, numeric `pattern`, `maxDecimalPlaces(2)` |
+| Form-level **and** control-level errors | ✅ | Form-level summary (`role="alert"`) echoes server problem-details; control-level messages render one-at-a-time, only after `touched` |
+
+### HTTP ✅
+- `HttpClient` via thin API services ([employee-api.service.ts](../client/src/app/core/services/employee-api.service.ts), account-api.service.ts).
+- **Two functional interceptors** — covering all three suggested duties:
+  - [correlation-id.interceptor.ts](../client/src/app/core/interceptors/correlation-id.interceptor.ts) (correlation-id header),
+  - [error.interceptor.ts](../client/src/app/core/interceptors/error.interceptor.ts) (error normalization + logging). Registered in deliberate order.
+
+**Verdict: ✅ complete, several items over-delivered.**
+
+---
+
+## 5. State management (NgRx)
+
+| Requirement | Status | Where |
+|---|---|---|
+| Actions | ✅ | `createActionGroup` Page/API split — [employee.actions.ts](../client/src/app/features/employees/store/employee.actions.ts), [account.actions.ts](../client/src/app/features/accounts/store/account.actions.ts) |
+| Reducers | ✅ | `createFeature` + `createReducer` — [employee.reducer.ts](../client/src/app/features/employees/store/employee.reducer.ts), [account.reducer.ts](../client/src/app/features/accounts/store/account.reducer.ts) |
+| Selectors | ✅ | Auto-generated + custom (`selectTotalPages`, `selectSubtotalsByCurrency`, `selectTotalBalance`) |
+| Effects (API calls) | ✅ | Functional effects calling the API services — [employee.effects.ts](../client/src/app/features/employees/store/employee.effects.ts), [account.effects.ts](../client/src/app/features/accounts/store/account.effects.ts) |
+| Loading / error state | ✅ | `loadingList/loadingOne/saving/deleting` + `error: ApiError\|null` (employees); `loading/saving/closing` + `error` (accounts) |
+| Facades | ✅ | [employee.facade.ts](../client/src/app/features/employees/store/employee.facade.ts), [account.facade.ts](../client/src/app/features/accounts/store/account.facade.ts) — observables + command methods |
+| **router-store (bonus)** | ✅ | `provideRouterStore()` + `routerReducer` in [app.config.ts](../client/src/app/app.config.ts) |
+
+Note the **NgRx + Signals hybrid**: state lives in NgRx (observables via the
+facade), and components bridge to signals with `toSignal()` for terse, OnPush
+templates. This is a modern, defensible architecture choice.
+
+**Verdict: ✅ complete, including the optional router-store.**
+
+---
+
+## 6. Security & quality
+
+The spec explicitly scopes this as *lightweight*. All three asks are met:
+
+- **Input sanitization & validation** → [sanitize.js](../server/utils/sanitize.js) (`sanitizeObject` strips tags/trims) applied in every controller, plus per-resource validators on the server and the reactive-form validators on the client.
+- **Clean, problem-details-style errors** → [problem-details.js](../server/utils/problem-details.js) (RFC-7807-ish: `type/title/status/detail/errors[]`), used consistently for 400/404/409/500.
+- **Basic logging** → Morgan access logs with a custom `cid` token ([logger.js](../server/middleware/logger.js)) + a [correlation-id.js](../server/middleware/correlation-id.js) middleware that mints/echoes `X-Correlation-Id`, tied end-to-end to the client interceptor.
+
+**Verdict: ✅ complete for the stated (lightweight) scope.** No authentication —
+correctly, since the spec does not ask for it.
+
+---
+
+## 7. Testing
+
+**Minimum required (frontend): a reducer test, an effect test, a form component
+test, a service test.** All four exist:
+
+| Required test | Status | File |
+|---|---|---|
+| Reducer | ✅ | [employee.reducer.spec.ts](../client/src/app/features/employees/store/employee.reducer.spec.ts) |
+| Effect | ✅ | [employee.effects.spec.ts](../client/src/app/features/employees/store/employee.effects.spec.ts) |
+| Form component | ✅ | [employee-form.component.spec.ts](../client/src/app/features/employees/pages/employee-form/employee-form.component.spec.ts) |
+| Service | ✅ | [employee-api.service.spec.ts](../client/src/app/core/services/employee-api.service.spec.ts) (HttpTestingController) |
+
+**Beyond the minimum:** backend Jest suites for the two highest-risk services
+([employee.service.test.js](../server/__tests__/services/employee.service.test.js),
+[audit.service.test.js](../server/__tests__/services/audit.service.test.js)) and
+**four** Cypress e2e specs (employee flow, account flow, audit-log flow, filters).
+
+**Verdict: ✅ complete, well beyond the minimum.**
+
+---
+
+## 8. Deliverables (README)
+
+[README.md](../README.md) covers all three required topics:
+
+- **Prerequisites** (Node ≥ 20.11, npm ≥ 10, Chrome, Git).
+- **How to run** (`npm run install:all`, `npm start` for concurrent server+client, plus per-side and test commands).
+- **Architecture explanation incl. NgRx structure** — dedicated sections for server (MVC + repository), client (core/shared/features), the **NgRx action-group + facade + createFeature** pattern, the Signals-at-the-leaf approach, interceptors, forms, and styling.
+
+Supplementary guides also live in [docs/](../docs/) (NgRx, CI, change detection,
+Angular fundamentals, this audit).
+
+**Verdict: ✅ complete.**
+
+---
+
+## 9. Bonus ideas
+
+The spec says "pick any." **All three are present:**
+
+- ✅ **Sorting & pagination** on the employee list (clickable sortable headers; page-size select + prev/next; server-side slice/sort).
+- ✅ **Account audit log** (append-only) — [employee-audit-log.component.ts](../client/src/app/features/employees/components/employee-audit-log/employee-audit-log.component.ts) + audit service/route, with CREATE/UPDATE/CLOSE/REOPEN/CASCADE_CLOSE narratives.
+- ✅ **Cypress e2e** — not one flow but four.
+
+**Verdict: ✅ all bonuses delivered.**
+
+---
+
+## 10. Genuine gaps & thin spots
+
+Nothing **required** is missing. The items below are **optional depth** or
+**polish** observations — useful if the goal is to push the rubric's UI/quality
+bands higher.
+
+1. **🟡 Accessibility could go deeper.** Present: `role="dialog"`/`aria-modal` on
+   the confirm dialog, `role="search"` on filters, `role="alert"` on the error
+   summary, and `label`/`for` associations. Thinner: no `<fieldset>`/`<legend>`
+   grouping in forms, no `aria-describedby` linking inputs to their inline error
+   text (screen-reader users may not hear the specific error), no visible
+   skip-link, and focus-trap/return-focus behaviour on dialog open/close isn't
+   explicitly implemented. *Why it matters:* the rubric lists accessibility under
+   the 90% "UI polish" bucket, so these are the cheapest points left on the table.
+
+2. **🟡 Guarding is `canDeactivate`-only.** The unsaved-changes guard
+   ([unsaved-changes.guard.ts](../client/src/app/core/guards/unsaved-changes.guard.ts))
+   satisfies the rubric's "guarding," but there's no `canActivate`/resolver.
+   *Why:* there's no auth in scope, so this is expected — noted only for
+   completeness.
+
+3. **🟡 Backend tests are service-focused.** Jest covers the two highest-risk
+   services but not controllers/repositories/validators directly. *Why it's fine:*
+   the spec's testing minimum is **frontend-only**; backend tests are already a
+   bonus, and the riskiest logic (cascade close, audit diffing) is the part
+   covered.
+
+4. **🟡 A11y/UX edge:** the submit button stays enabled on invalid forms (by
+   design — clicking surfaces all errors via `markAllAsTouched()`). Reasonable,
+   but worth a deliberate mention in a review since some reviewers expect a
+   disabled-until-valid pattern.
+
+5. **ℹ️ Not a gap:** the app uses **Zone.js change detection** (`provideZone…`),
+   not zoneless. The assignment never asks for zoneless, so this is purely
+   informational (see [CHANGE_DETECTION_GUIDE.md](./CHANGE_DETECTION_GUIDE.md)).
+
+**None of the above blocks any mandatory requirement.**
+
+---
+
+## 11. Rubric-aligned summary
+
+**Frontend concepts (90%)**
+
+| Rubric line | Status | Note |
+|---|---|---|
+| NgRx correctness & cleanliness | ✅ | Action-group/reducer/selector/effect/facade for both features + router-store |
+| Component design (parent/child, reusability) | ✅ | Detail→AccountList, shared component library |
+| Reactive form control & validation UX | ✅ | Multi-layer validators incl. async unique-email; form- + control-level errors |
+| Routing, guarding, lazy loading | ✅ | Two-level lazy loading + `canDeactivate` guard |
+| UI polish (HTML/CSS, transitions, **a11y**, responsiveness) | 🟡 | Strong on responsive/structure; **accessibility depth** is the main lift available |
+
+**Engineering quality (10%)**
+
+| Rubric line | Status | Note |
+|---|---|---|
+| Tests | ✅ | All 4 required + backend Jest + 4 Cypress specs |
+| README clarity | ✅ | Prereqs, run, architecture/NgRx all covered |
+| Clean code / naming / commits | ✅ | Consistent layering, documented intent |
+| Error handling & edge cases | ✅ | Problem-details, interceptors, cascade close, FX-aware totals |
+
+### Bottom line
+
+**Every mandatory requirement is implemented, and all three optional bonus items
+are delivered.** Several areas exceed the brief (PATCH on accounts, account
+reopen, two interceptors, backend tests, four e2e flows, router-store). The only
+meaningful opportunity for *extra* marks is **deeper accessibility**
+(`aria-describedby` on field errors, `fieldset/legend`, dialog focus management) —
+everything else the assignment asks for is present and demonstrably wired up.

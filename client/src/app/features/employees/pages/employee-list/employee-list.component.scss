@@ -7,7 +7,9 @@
   font-weight: 600;
   color: inherit;
   cursor: pointer;
-  &:hover { color: var(--color-primary); }
+  &:hover {
+    color: var(--color-primary);
+  }
 }
 
 .pagination {
@@ -23,8 +25,20 @@
    prev/next pair below it. Both rows full-width so taps have generous
    targets even on a narrow screen. */
 @media (max-width: 480px) {
-  .pagination { gap: 8px; margin-top: 8px; }
-  .pagination > span { flex-basis: 100%; font-size: 12px; }
-  .pagination > .row { flex-basis: 100%; justify-content: space-between; gap: 6px; }
-  .pagination select { padding: 6px 8px; }
+  .pagination {
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .pagination > span {
+    flex-basis: 100%;
+    font-size: 12px;
+  }
+  .pagination > .row {
+    flex-basis: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .pagination select {
+    padding: 6px 8px;
+  }
 }

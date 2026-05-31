@@ -84,20 +84,28 @@ export class EmployeeAuditLogComponent implements OnInit, OnChanges {
   /** CSS class for the action badge. */
   badgeClass(action: AuditEntry['action']): string {
     switch (action) {
-      case 'CREATE': return 'badge badge--create';
-      case 'UPDATE': return 'badge badge--update';
-      case 'DELETE': return 'badge badge--delete';
-      case 'CLOSE': return 'badge badge--close';
-      case 'REOPEN': return 'badge badge--reopen';
-      case 'CASCADE_CLOSE': return 'badge badge--cascade';
+      case 'CREATE':
+        return 'badge badge--create';
+      case 'UPDATE':
+        return 'badge badge--update';
+      case 'DELETE':
+        return 'badge badge--delete';
+      case 'CLOSE':
+        return 'badge badge--close';
+      case 'REOPEN':
+        return 'badge badge--reopen';
+      case 'CASCADE_CLOSE':
+        return 'badge badge--cascade';
     }
   }
 
   /** Human-readable label for the action badge. */
   actionLabel(action: AuditEntry['action']): string {
     switch (action) {
-      case 'CASCADE_CLOSE': return 'CASCADE CLOSE';
-      default: return action;
+      case 'CASCADE_CLOSE':
+        return 'CASCADE CLOSE';
+      default:
+        return action;
     }
   }
 

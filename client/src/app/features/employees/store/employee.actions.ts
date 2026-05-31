@@ -1,5 +1,11 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { Employee, EmployeeListResponse, EmployeeQuery, EmployeeStatus, EmployeeUpsert } from '@core/models/employee.model';
+import {
+  Employee,
+  EmployeeListResponse,
+  EmployeeQuery,
+  EmployeeStatus,
+  EmployeeUpsert
+} from '@core/models/employee.model';
 import { ApiError } from '@core/models/api-error.model';
 
 /**
@@ -12,10 +18,10 @@ export const EmployeePageActions = createActionGroup({
   events: {
     'Load List': props<{ query: EmployeeQuery }>(),
     'Load One': props<{ id: string }>(),
-    'Create': props<{ payload: EmployeeUpsert }>(),
-    'Update': props<{ id: string; payload: EmployeeUpsert }>(),
+    Create: props<{ payload: EmployeeUpsert }>(),
+    Update: props<{ id: string; payload: EmployeeUpsert }>(),
     'Patch Status': props<{ id: string; status: EmployeeStatus }>(),
-    'Delete': props<{ id: string }>(),
+    Delete: props<{ id: string }>(),
     'Clear Selected': emptyProps(),
     'Clear Error': emptyProps()
   }

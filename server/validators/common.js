@@ -13,9 +13,7 @@ const NAME_PATTERN = /^\p{L}[\p{L} \-']*$/u;
 const BALANCE_PATTERN = /^\d+(\.\d{1,2})?$/;
 
 const isValidEmail = (email) =>
-  typeof email === 'string' &&
-  email.length <= 120 &&
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  typeof email === 'string' && email.length <= 120 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const isValidName = (name) =>
   typeof name === 'string' &&

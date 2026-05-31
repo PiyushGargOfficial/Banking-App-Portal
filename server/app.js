@@ -2,7 +2,7 @@
  * Express application factory.
  *
  * Pulls every layer together in the order the request travels:
- *   1. CORS - allow the Angular dev server origin and expose the cid header
+ *   1. CORS - restrict to the configured origin(s) and expose the cid header
  *   2. JSON parser - body parsing for POST/PUT/PATCH
  *   3. correlationId - attaches an X-Correlation-Id to req + response
  *   4. logger - access log including the correlation id
@@ -16,7 +16,7 @@
 const express = require('express');
 const cors = require('cors');
 
-const { CORRELATION_HEADER } = require('./config');
+const { CORRELATION_HEADER, CORS_ORIGIN } = require('./config');
 const correlationId = require('./middleware/correlation-id');
 const logger = require('./middleware/logger');
 const { notFound, errorHandler } = require('./middleware/error-handler');
@@ -27,7 +27,7 @@ const auditRoutes = require('./routes/audit.routes');
 
 const app = express();
 
-app.use(cors({ exposedHeaders: [CORRELATION_HEADER] }));
+app.use(cors({ origin: CORS_ORIGIN, exposedHeaders: [CORRELATION_HEADER] }));
 app.use(express.json());
 app.use(correlationId);
 app.use(logger);

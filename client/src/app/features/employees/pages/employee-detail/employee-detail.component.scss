@@ -11,14 +11,22 @@
 /* Tablet portrait: force a 2 x 2 layout so the four tiles always pair
    cleanly instead of dropping to an awkward 3 + 1 wrap. */
 @media (max-width: 768px) {
-  .summary-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 }
 
 @media (max-width: 480px) {
-  .summary-grid { grid-template-columns: 1fr; }
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Big screens: give the tiles a touch more room each. */
 @media (min-width: 1920px) {
-  .summary-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 320px)); gap: 20px; }
+  .summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 320px));
+    gap: 20px;
+  }
 }

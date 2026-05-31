@@ -89,10 +89,16 @@ export const accountSuccessToast$ = createEffect(
       ),
       tap((action) => {
         switch (action.type) {
-          case AccountApiActions.createSuccess.type: notify.success('Account added'); break;
+          case AccountApiActions.createSuccess.type:
+            notify.success('Account added');
+            break;
           case AccountApiActions.updateSuccess.type:
-          case AccountApiActions.patchSuccess.type: notify.success('Account updated'); break;
-          case AccountApiActions.closeSuccess.type:  notify.success('Account closed'); break;
+          case AccountApiActions.patchSuccess.type:
+            notify.success('Account updated');
+            break;
+          case AccountApiActions.closeSuccess.type:
+            notify.success('Account closed');
+            break;
         }
       })
     ),

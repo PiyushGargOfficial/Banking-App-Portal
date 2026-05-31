@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -51,9 +59,11 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   // --- Facade observables -> signals -----------------------------------------
-  protected readonly employee = toSignal(this.facade.selected$,    { initialValue: null as Employee | null });
-  protected readonly loading  = toSignal(this.facade.loadingOne$,  { initialValue: false });
-  protected readonly deleting = toSignal(this.facade.deleting$,    { initialValue: false });
+  protected readonly employee = toSignal(this.facade.selected$, {
+    initialValue: null as Employee | null
+  });
+  protected readonly loading = toSignal(this.facade.loadingOne$, { initialValue: false });
+  protected readonly deleting = toSignal(this.facade.deleting$, { initialValue: false });
 
   // --- Component-local UI state ----------------------------------------------
   protected employeeId: string | null = null;
@@ -67,9 +77,7 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
     //   - is destroyed when the component is destroyed (via DestroyRef)
     effect(() => {
       const emp = this.employee();
-      document.title = emp
-        ? `${emp.firstName} ${emp.lastName} - ${DEFAULT_TITLE}`
-        : DEFAULT_TITLE;
+      document.title = emp ? `${emp.firstName} ${emp.lastName} - ${DEFAULT_TITLE}` : DEFAULT_TITLE;
     });
   }
 
@@ -98,8 +106,12 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
     this.facade.patchStatus(emp.employeeId, emp.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE');
   }
 
-  requestDelete(): void { this.confirmOpen.set(true); }
-  cancelDelete(): void { this.confirmOpen.set(false); }
+  requestDelete(): void {
+    this.confirmOpen.set(true);
+  }
+  cancelDelete(): void {
+    this.confirmOpen.set(false);
+  }
 
   confirmDelete(emp: Employee): void {
     this.confirmOpen.set(false);
@@ -107,5 +119,7 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
     // Effect handles toast + navigation back to list.
   }
 
-  navigateBack(): void { this.router.navigate(['/employees']); }
+  navigateBack(): void {
+    this.router.navigate(['/employees']);
+  }
 }

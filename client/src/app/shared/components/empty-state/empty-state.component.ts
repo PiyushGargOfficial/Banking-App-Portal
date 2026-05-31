@@ -16,17 +16,31 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
       <ng-content></ng-content>
     </div>
   `,
-  styles: [`
-    .empty-state {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 8px; padding: 32px 16px; text-align: center;
-      border: 1px dashed var(--color-border); border-radius: var(--radius-md);
-      background: var(--color-surface);
-    }
-    .empty-state__icon { font-size: 28px; }
-    .empty-state__title { margin: 0; }
-    .empty-state__message { margin: 0; color: var(--color-text-muted); }
-  `]
+  styles: [
+    `
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 32px 16px;
+        text-align: center;
+        border: 1px dashed var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+      }
+      .empty-state__icon {
+        font-size: 28px;
+      }
+      .empty-state__title {
+        margin: 0;
+      }
+      .empty-state__message {
+        margin: 0;
+        color: var(--color-text-muted);
+      }
+    `
+  ]
 })
 export class EmptyStateComponent {
   @Input() icon = 'i';

@@ -72,13 +72,22 @@ export const employeeFeature = createFeature({
     })),
 
     // --- Single --------------------------------------------------------------
-    on(EmployeePageActions.loadOne, (state) => ({ ...state, loadingOne: true, error: null, selected: null })),
+    on(EmployeePageActions.loadOne, (state) => ({
+      ...state,
+      loadingOne: true,
+      error: null,
+      selected: null
+    })),
     on(EmployeeApiActions.loadOneSuccess, (state, { employee }) => ({
       ...state,
       selected: employee,
       loadingOne: false
     })),
-    on(EmployeeApiActions.loadOneFailure, (state, { error }) => ({ ...state, loadingOne: false, error })),
+    on(EmployeeApiActions.loadOneFailure, (state, { error }) => ({
+      ...state,
+      loadingOne: false,
+      error
+    })),
     on(EmployeePageActions.clearSelected, (state) => ({ ...state, selected: null })),
 
     // --- Create / Update / Patch --------------------------------------------
@@ -93,12 +102,16 @@ export const employeeFeature = createFeature({
       // Prepend so the user sees the new record immediately even before a re-fetch.
       items: [employee, ...state.items]
     })),
-    on(EmployeeApiActions.updateSuccess, EmployeeApiActions.patchStatusSuccess, (state, { employee }) => ({
-      ...state,
-      saving: false,
-      selected: state.selected?.employeeId === employee.employeeId ? employee : state.selected,
-      items: state.items.map((e) => (e.employeeId === employee.employeeId ? employee : e))
-    })),
+    on(
+      EmployeeApiActions.updateSuccess,
+      EmployeeApiActions.patchStatusSuccess,
+      (state, { employee }) => ({
+        ...state,
+        saving: false,
+        selected: state.selected?.employeeId === employee.employeeId ? employee : state.selected,
+        items: state.items.map((e) => (e.employeeId === employee.employeeId ? employee : e))
+      })
+    ),
     on(
       EmployeeApiActions.createFailure,
       EmployeeApiActions.updateFailure,
