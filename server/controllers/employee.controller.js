@@ -30,7 +30,11 @@ exports.list = (req, res) => {
 
 /** GET /api/employees/email-available - async validator helper. */
 exports.emailAvailable = (req, res) => {
-  const email = (req.query.email || '').toString();
+  // Trim to mirror the create/replace path, which sanitises (trims) the body
+  // before storing. Without this, a query email with stray whitespace would be
+  // compared against the trimmed stored value and falsely report "available".
+  // (Matching itself is case-insensitive in the repository.)
+  const email = (req.query.email || '').toString().trim();
   const excludeId = (req.query.excludeId || '').toString();
   if (!email) return res.json({ available: false });
   res.json({ available: !EmployeeService.isEmailTaken(email, excludeId) });
