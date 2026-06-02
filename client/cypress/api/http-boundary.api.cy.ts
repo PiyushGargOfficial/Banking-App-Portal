@@ -1,5 +1,9 @@
 /// <reference types="cypress" />
 
+// Make this spec a module so its top-level consts get file scope (avoids
+// TS2451 redeclare collisions with identically-named consts in sibling specs).
+export {};
+
 /**
  * API-level HTTP-boundary tests (cy.request, no browser/DOM).
  *

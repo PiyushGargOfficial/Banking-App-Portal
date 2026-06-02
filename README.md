@@ -1,17 +1,73 @@
-# Banking Admin Portal
+<div align="center">
 
-A small **Banking Admin Portal** that lets an admin manage **Employees** and their linked banking **Accounts**. Built as a take-home for the Senior Angular Developer role.
+# 🏦 Banking Admin Portal
 
-The project is split into:
+**An internal back-office tool for managing employees and their linked banking accounts.**
+Built as a take-home for a **Senior Angular Developer** role — and treated as a real product, not a spec speed-run.
+
+![Angular](https://img.shields.io/badge/Angular-17-DD0031?logo=angular&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![NgRx](https://img.shields.io/badge/NgRx-17-BA2BD2?logo=reduxsaga&logoColor=white)
+![RxJS](https://img.shields.io/badge/RxJS-7-B7178C?logo=reactivex&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
+![Node](https://img.shields.io/badge/Node-%E2%89%A520.11-339933?logo=node.js&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-tested-C21325?logo=jest&logoColor=white)
+![Cypress](https://img.shields.io/badge/Cypress-e2e-69D3A7?logo=cypress&logoColor=white)
+
+</div>
 
 ```
 banking-admin-portal/
-├── server/    # Express mock HTTP API (in-memory, all REST verbs)
-├── client/    # Angular 17 standalone app with NgRx + Cypress
+├── server/    # Express mock HTTP API  (in-memory, all REST verbs)
+├── client/    # Angular 17 standalone app  (NgRx + Signals, Cypress)
 └── docs/      # Architectural deep-dives + interview prep
 ```
 
-> **If you're reviewing this as an interviewer:** the [docs/](./docs/) folder has the full decision log — NgRx + Signals split, MVC + repository pattern, accessibility audit, the page-size DoS-hardening rationale, plus a self-review of the gaps that remain. Section [7](#7-further-reading) below links them. The two-minute architecture story lives in [docs/INTERVIEW_PLAYBOOK.md](./docs/INTERVIEW_PLAYBOOK.md).
+> 🧑‍⚖️ **Reviewing this as an interviewer?** The [`docs/`](./docs/) folder is the full decision log — the NgRx + Signals split, the MVC + repository pattern, an accessibility audit, the page-size DoS-hardening rationale, and a candid self-review of the gaps that remain. The curated index is in [§7 Further reading](#7-further-reading); the two-minute architecture story lives in [docs/INTERVIEW_PLAYBOOK.md](./docs/INTERVIEW_PLAYBOOK.md).
+
+---
+
+## ⚡ Quick start
+
+```bash
+npm run install:all   # once — installs root, server, and client deps
+npm start             # runs API + Angular together
+```
+
+| Service | URL | Notes |
+| ------- | --- | ----- |
+| 🅰️ Angular dev server | <http://localhost:4200> | Open this. Proxies `/api/*` → mock API. |
+| 🔌 Express mock API | <http://localhost:3000> | Seeded with **33 employees + 12 accounts** on every restart. |
+
+Full prerequisites in [§1](#1-prerequisites); per-side and test commands in [§3](#3-run-the-app)–[§4](#4-run-the-tests).
+
+---
+
+## ✨ At a glance
+
+| | |
+| --- | --- |
+| **Frontend** | Angular 17 standalone components, **NgRx** (action-group + facade), **Signals** at the leaf, reactive forms with an async unique-email validator, two HTTP interceptors, lazy-loaded feature routes, `OnPush` everywhere. |
+| **Backend** | Express with a strict **MVC + service + repository** stack, RFC 7807 problem-details errors, input sanitisation, correlation-id tracing, an **append-only audit log**. |
+| **All 5 HTTP verbs** | `GET` · `POST` · `PUT` · `PATCH` · `DELETE` across employees and accounts. |
+| **Tested** | 4 frontend unit specs · 2 backend Jest suites · 4 Cypress e2e flows. |
+| **Responsive** | Phone → tablet → desktop → 4K, one breakpoint system. |
+| **Bonus items** | Sort + pagination, per-currency subtotals, router-store, append-only audit log. |
+
+---
+
+## 📑 Table of contents
+
+1. [Prerequisites](#1-prerequisites)
+2. [Install dependencies](#2-install-dependencies)
+3. [Run the app](#3-run-the-app)
+4. [Run the tests](#4-run-the-tests)
+5. [REST API](#5-rest-api)
+6. [Architecture](#6-architecture)
+7. [Further reading](#7-further-reading)
+8. [Bonus items delivered](#8-bonus-items-delivered)
+9. [Notes for the reviewer](#9-notes-for-the-reviewer)
+10. [Senior-dev review: what's missing](#10-senior-dev-review-whats-missing)
 
 ---
 
@@ -24,8 +80,7 @@ banking-admin-portal/
 | **Chrome**  | latest         | Karma tests use `ChromeHeadless`.                                                                                             |
 | **Git**     | any recent     | For cloning / commits.                                                                                                        |
 
-> Pinned via `engines` in each `package.json`. `npm install` will warn if you're on an older Node.
-> Tested on Node 20.x and 22.x.
+> Pinned via `engines` in each `package.json`. `npm install` will warn if you're on an older Node. Tested on Node 20.x and 22.x.
 
 ---
 
@@ -139,6 +194,8 @@ The mock backend exposes every HTTP method called out by the spec.
 |           | `PATCH`  | `/api/accounts/:accountId`       | Partial update                                                                                                 |
 |           | `DELETE` | `/api/accounts/:accountId`       | **Soft close** (sets `status=CLOSED`)                                                                          |
 | Audit     | `GET`    | `/api/employees/:id/audit`       | **Append-only** trail for the employee (profile + their accounts). Newest first, paginated via `?page=&size=`. |
+
+> 💡 A ready-to-import **Postman collection** covering every endpoint (with auto-saved ids and a correlation-id header) lives in [`postman/`](./postman/).
 
 Errors are returned as RFC 7807 _problem-details_ documents:
 
@@ -381,19 +438,44 @@ Strongly-typed reactive forms (`fb.nonNullable.group`) with:
 
 ## 7. Further reading
 
-The `docs/` folder contains architectural deep-dives written as the design decisions were made. Each one explains the *why* a junior dev would need without skipping the depth a senior reviewer wants. They're written to stand alone — read them in any order.
+The `docs/` folder contains architectural deep-dives written as the design decisions were made. Each explains the *why* a junior dev would need without skipping the depth a senior reviewer wants — they stand alone, read in any order.
+
+<!-- Links are relative to the repo root: this README lives at the root, the docs live under docs/. -->
+
+### 🏛️ Architecture & design
 
 | Doc | What it covers |
 |---|---|
-| [NGRX_GUIDE.md](./NGRX_GUIDE.md) | Walkthrough of how NgRx is layered in this project — Actions / Reducers / Selectors / Effects / Facades — with the full lifecycle traced for the delete action. The "Signals at the leaf" pattern is documented separately in §6 of this README. |
-| [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_DIAGRAMS.md) | **Visual reference** — every layer, every flow, every cross-cutting concern as a Mermaid diagram. System architecture, frontend layering, backend MVC + repository + service stack, request lifecycle end-to-end, six user-flow sequence diagrams, correlation-id + error + validation + audit pipelines, ER-style data model, dev environment orchestration, test pipeline. The doc to share when someone asks "draw me the system". Also available as a styled HTML doc ([docs/WORKFLOW_DIAGRAMS.html](./docs/WORKFLOW_DIAGRAMS.html)) and a print-ready PDF ([docs/WORKFLOW_DIAGRAMS.pdf](./docs/WORKFLOW_DIAGRAMS.pdf)) — see [§7a](#7a-regenerating-the-pdf-version) for how to rebuild the PDF after edits. |
-| [docs/MAX_PAGE_SIZE_CLAMP.md](./docs/MAX_PAGE_SIZE_CLAMP.md) | Why the paginated list endpoints clamp `?size=N` at 100, why we clamp instead of reject, why the constant lives in `config/index.js`, and how the four-test pattern proves it works without breaking the normal path. |
-| [docs/ACCESSIBILITY_AUDIT.md](./docs/ACCESSIBILITY_AUDIT.md) | Six WAI-ARIA improvements walked through with before/after code and what each one actually announces to a screen reader: `aria-describedby` linking inputs to errors, `fieldset/legend` grouping, the full dialog focus-trap pattern, `aria-sort`, `aria-current="page"`, and the assertive/polite toast split. WCAG 2.1 mapping table included. |
-| [docs/INTERVIEW_REFLECTION.md](./docs/INTERVIEW_REFLECTION.md) | The five-question pre-interview exercise (problem, hardest decision, outcome, biggest change, what I learned) drilled down to the speakable answers. |
-| [docs/INTERVIEW_PLAYBOOK.md](./docs/INTERVIEW_PLAYBOOK.md) | The full ten-step interview preparation: two-minute pitch, ASCII architecture diagram, decision tree with rejected alternatives, honest impact numbers, things that didn't work, ownership-beyond-code framing, demo readiness, tailoring depth by interviewer role, and a day-before/morning-of checklist. |
-| [docs/PROJECT_DEEP_ANALYSIS.md](./docs/PROJECT_DEEP_ANALYSIS.md) | **A full audit of the project through a banking-industry interviewer's eyes.** The eight banking-specific evaluation lenses, twelve things the project gets right (with the *why a banker cares* for each), the bad gaps ranked by blast radius (Critical / Important / Cosmetic), the "missing entirely" not-yet category, a four-phase six-month roadmap to bank-shippable, prepared answers for the eight most likely follow-up questions, and a calibrated 3.4/5 self-rating. |
+| [docs/NGRX_GUIDE.md](./docs/NGRX_GUIDE.md) | How NgRx is layered here — Actions / Reducers / Selectors / Effects / Facades — with the full lifecycle traced for the delete action. |
+| [docs/ARCHITECTURE_FUNDAMENTALS.md](./docs/ARCHITECTURE_FUNDAMENTALS.md) | The architecture + parent/child requirements: standalone structure, two-level lazy loading, the shared component library, and the `@Input`/`@Output` + facade split. |
+| [docs/ANGULAR_FUNDAMENTALS_GUIDE.md](./docs/ANGULAR_FUNDAMENTALS_GUIDE.md) | The same fundamentals plus Forms and HTTP, explained for a junior dev. |
+| [docs/CHANGE_DETECTION_GUIDE.md](./docs/CHANGE_DETECTION_GUIDE.md) | Why this app is Zone.js-based (not zoneless), and what that means. |
+| [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_DIAGRAMS.md) | **Visual reference** — every layer and flow as a Mermaid diagram (system, frontend layering, backend stack, request lifecycle, six user-flow sequences, the correlation-id / error / validation / audit pipelines, an ER-style data model). Also a styled [HTML](./docs/WORKFLOW_DIAGRAMS.html) and print-ready [PDF](./docs/WORKFLOW_DIAGRAMS.pdf) — rebuild steps below. |
 
-### 7a. Regenerating the PDF version
+### 🛡️ Quality, security & decisions
+
+| Doc | What it covers |
+|---|---|
+| [docs/MAX_PAGE_SIZE_CLAMP.md](./docs/MAX_PAGE_SIZE_CLAMP.md) | Why list endpoints clamp `?size=N` at 100, why clamp instead of reject, and the four-test pattern that proves it. |
+| [docs/ACCESSIBILITY_AUDIT.md](./docs/ACCESSIBILITY_AUDIT.md) | Six WAI-ARIA improvements with before/after code and what each announces to a screen reader. WCAG 2.1 mapping included. |
+| [docs/PII_LOGGING_TRADEOFF.md](./docs/PII_LOGGING_TRADEOFF.md) | Why logging full models is a demo-only choice and how it'd be gated behind `LOG_LEVEL=debug` in production. |
+| [docs/CORS_SECURITY_FIX.md](./docs/CORS_SECURITY_FIX.md) · [docs/EMAIL_AVAILABILITY_INVESTIGATION.md](./docs/EMAIL_AVAILABILITY_INVESTIGATION.md) | Targeted investigations: CORS posture, and the "is the email-available endpoint wrong?" reproduce-don't-guess writeup. |
+| [docs/CYPRESS_TEST_TARGET_DECISION.md](./docs/CYPRESS_TEST_TARGET_DECISION.md) · [docs/TEST_BREADTH_GUIDE.md](./docs/TEST_BREADTH_GUIDE.md) · [docs/CI_PIPELINE_GUIDE.md](./docs/CI_PIPELINE_GUIDE.md) | Test-target choice (dev server vs CI), test-breadth strategy, and CI pipeline notes. |
+| [docs/ASSIGNMENT_COMPLIANCE_AUDIT.md](./docs/ASSIGNMENT_COMPLIANCE_AUDIT.md) | A section-by-section check of the project against the full assignment spec — what's present (how) and what's thin (why). |
+
+### 🎤 Interview prep
+
+| Doc | What it covers |
+|---|---|
+| [docs/INTERVIEW_PLAYBOOK.md](./docs/INTERVIEW_PLAYBOOK.md) | The full ten-step prep: two-minute pitch, ASCII architecture diagram, decision tree with rejected alternatives, honest impact numbers, what didn't work, and a day-before checklist. |
+| [docs/INTERVIEW_PREP.md](./docs/INTERVIEW_PREP.md) | The **delivery** guide: how to record a demo video, the diagrams to show, the hero code snippets, and a minute-by-minute live-demo script. |
+| [docs/INTERVIEW_PREP_WITH_JAVA_ALT.md](./docs/INTERVIEW_PREP_WITH_JAVA_ALT.md) | Every backend concept mapped to its Java / Spring Boot equivalent (Bean Validation, `ProblemDetail`, JPA, Envers, MDC…). |
+| [docs/HOW_WOULD_YOU_SCALE_THIS_10X.md](./docs/HOW_WOULD_YOU_SCALE_THIS_10X.md) | The scaling answer in depth: Postgres + indexes, event sourcing + Redis, stateless horizontal scale, OpenTelemetry off the correlation-id. |
+| [docs/INTERVIEW_REFLECTION.md](./docs/INTERVIEW_REFLECTION.md) | The five-question pre-interview exercise drilled down to speakable answers. |
+| [docs/PROJECT_DEEP_ANALYSIS.md](./docs/PROJECT_DEEP_ANALYSIS.md) | A full audit through a banking-industry interviewer's eyes — eight evaluation lenses, gaps ranked by blast radius, a six-month roadmap, and a calibrated 3.4/5 self-rating. |
+
+<details>
+<summary><strong>🖨️ Regenerating the WORKFLOW_DIAGRAMS PDF</strong></summary>
 
 The PDF in `docs/WORKFLOW_DIAGRAMS.pdf` was generated by running the styled `WORKFLOW_DIAGRAMS.html` through headless Chrome / Edge. After you edit the HTML, regenerate the PDF with:
 
@@ -423,15 +505,17 @@ The `--virtual-time-budget=15000` flag is what makes this work — it gives the 
 
 **Alternative for non-developers**: open `WORKFLOW_DIAGRAMS.html` in any browser, wait for the diagrams to render (~3 seconds), then `Ctrl+P` → "Save as PDF" → choose A4 portrait. Identical output, no command line.
 
+</details>
+
 ---
 
 ## 8. Bonus items delivered
 
-- Sorting + pagination on the employee list
-- Per-currency subtotals + total balance for accounts
-- Router-store integration
-- Cypress end-to-end spec for the employee CRUD flow
-- **Append-only audit log per employee** (profile + their accounts), rendered on the detail page with action badges, field-level diffs, and correlation-id traceability
+- ✅ Sorting + pagination on the employee list
+- ✅ Per-currency subtotals + total balance for accounts
+- ✅ Router-store integration
+- ✅ Cypress end-to-end spec for the employee CRUD flow
+- ✅ **Append-only audit log per employee** (profile + their accounts), rendered on the detail page with action badges, field-level diffs, and correlation-id traceability
 
 ---
 
@@ -448,13 +532,13 @@ The `--virtual-time-budget=15000` flag is what makes this work — it gives the 
 
 A self-review of the gaps I'd flag in my own PR. Listed in roughly the order I'd prioritise fixing them on a real team.
 
-### Critical (would block production)
+### 🔴 Critical (would block production)
 
 1. **No authentication.** Every audit entry records `actor: 'admin'` because there's no user concept. JWT middleware populating `req.user` is the unblock for everything below.
 2. **No backend test coverage on validators / controllers / middleware.** Jest currently covers the two highest-risk services (audit + employee). The validators and controllers are tested transitively via Cypress but have no direct unit tests — a regression in a validator wouldn't fail in CI until the e2e suite ran.
 3. **Validation rules duplicated client and server.** The name regex `/^\p{L}[\p{L} \-']*$/u`, `MAX_BALANCE`, and the account-number pattern appear in both `client/src/app/core/validators/` and `server/validators/common.js`. A one-sided edit would mean silent contract drift. Fix is a shared package both depend on.
 
-### Should fix (visible in PR review)
+### 🟡 Should fix (visible in PR review)
 
 4. **`prefers-reduced-motion` not respected** on the toast slide-in animation and the confirm-dialog fade.
 5. **No CI pipeline** — `.github/workflows/ci.yml` would run lint + frontend tests + backend Jest + build on every PR.
@@ -463,7 +547,8 @@ A self-review of the gaps I'd flag in my own PR. Listed in roughly the order I'd
 8. **The confirm dialog rolls its own focus management** rather than using `@angular/cdk/dialog`. The hand-rolled version is correct (and educational) but the CDK is what a real shared component library would standardise on.
 9. **No formal contrast audit.** Visual inspection passes; the TD-green palette is conservative; an axe-core paid scan would prove it.
 
-### Nice to have
+<details>
+<summary><strong>🟢 Nice to have (genuine backlog)</strong></summary>
 
 10. **State persistence across refresh.** Filters and pagination reset to defaults on page reload — sync to URL query params via `router.navigate(..., { queryParams: ..., queryParamsHandling: 'merge' })` and the router-store integration starts paying for itself.
 11. **No optimistic updates.** Status toggle on the detail page waits for the API round-trip before the badge flips. A `patchStatus` reducer-side optimistic flip with rollback on `*Failure` would be ~15 lines and feel snappier.
@@ -471,7 +556,9 @@ A self-review of the gaps I'd flag in my own PR. Listed in roughly the order I'd
 13. **No request timeouts** on the HTTP client. A hung backend pends the spinner forever. `timeout(15_000)` in the error interceptor would close that gap.
 14. **Storybook absent.** Building a new shared component means launching the whole app. For a real product, Storybook would let `confirm-dialog`, `page-header`, etc. be developed in isolation.
 
-### Five things I'd actually fix first (if I had a week)
+</details>
+
+### ⭐ Five things I'd actually fix first (if I had a week)
 
 1. CI pipeline — stops new regressions immediately
 2. Validator + controller Jest tests — fills the highest test-coverage gap
@@ -480,3 +567,12 @@ A self-review of the gaps I'd flag in my own PR. Listed in roughly the order I'd
 5. URL state persistence — turns sticky filters from a UX nice-to-have into the first real use of the existing `provideRouterStore()` registration
 
 Everything else is genuine backlog material that would be prioritised against user feedback in a real product.
+
+---
+
+<div align="center">
+
+**Built by Piyush Garg** · Angular 17 · NgRx · Express · Cypress
+_Take-home for a Senior Angular Developer role — see [`docs/`](./docs/) for the full decision log._
+
+</div>

@@ -1,4 +1,4 @@
-# NgRx in the Banking Admin Portal
+ # NgRx in the Banking Admin Portal
 
 **A beginner-friendly walkthrough of how state management works in this project.**
 
