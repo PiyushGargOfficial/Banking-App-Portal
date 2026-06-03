@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:ELECTRON_DISABLE_GPU = \"1\"; Set-Location \"C:\\\\Users\\\\Piyush Garg\\\\Documents\\\\Documents\\\\Job Applications\\\\Senior Angular Developer\\\\Project\\\\banking-admin-portal\\\\client\"; npm run e2e:open)"
+    ]
+  }
+}
