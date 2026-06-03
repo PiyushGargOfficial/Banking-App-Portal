@@ -14,18 +14,22 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.oxml.ns import qn
 
-# ---- palette -----------------------------------------------------------------
-BG      = RGBColor(0x0F, 0x17, 0x2A)
-PANEL   = RGBColor(0x1E, 0x29, 0x3B)
-PANEL2  = RGBColor(0x26, 0x33, 0x49)
-ACCENT  = RGBColor(0x22, 0xC5, 0x5E)   # green
-ACCENT2 = RGBColor(0x38, 0xBD, 0xF8)   # sky
-AMBER   = RGBColor(0xF5, 0x9E, 0x0B)
-RED     = RGBColor(0xEF, 0x44, 0x44)
-TEXT    = RGBColor(0xE5, 0xE7, 0xEB)
-MUTED   = RGBColor(0x94, 0xA3, 0xB8)
-CODE    = RGBColor(0xE2, 0xE8, 0xF0)
-WHITE   = RGBColor(0xFF, 0xFF, 0xFF)
+# ---- palette (TD Bank colours) -----------------------------------------------
+WHITE      = RGBColor(0xFF, 0xFF, 0xFF)
+GREEN      = RGBColor(0x00, 0x8A, 0x00)   # TD Green (primary)
+GREEN_DARK = RGBColor(0x00, 0x6B, 0x00)   # hover/pressed
+GREEN_DEEP = RGBColor(0x00, 0x4F, 0x00)   # text on light green
+YELLOW     = RGBColor(0xFF, 0xC7, 0x2C)   # TD accent gold
+BG      = WHITE
+PANEL   = RGBColor(0xF2, 0xF4, 0xF5)      # light surface
+PANEL2  = RGBColor(0xE8, 0xF5, 0xE8)      # TD green soft (tiles, alt rows)
+ACCENT  = GREEN                            # primary accent
+ACCENT2 = GREEN_DARK                       # secondary edges
+AMBER   = RGBColor(0xB4, 0x53, 0x09)       # warn / backend edges
+RED     = RGBColor(0xC7, 0x10, 0x2E)       # TD red (critical)
+TEXT    = RGBColor(0x1C, 0x1C, 0x1C)       # high-contrast body
+MUTED   = RGBColor(0x55, 0x5E, 0x66)       # captions
+CODE    = RGBColor(0xE8, 0xF5, 0xE8)       # light text on dark code panel
 
 EMOJI = None  # keep fonts simple/portable
 TITLE_FONT = "Segoe UI Semibold"
@@ -89,13 +93,13 @@ def header(s, kicker, title):
     para(tf, kicker.upper(), 12, ACCENT, BODY_FONT, bold=True, first=True, space_after=0)
     accent_bar(s)
     tf2 = textbox(s, Inches(0.6), Inches(0.74), Inches(12.1), Inches(0.9))
-    para(tf2, title, 30, WHITE, TITLE_FONT, bold=True, first=True, space_after=0)
+    para(tf2, title, 30, GREEN_DEEP, TITLE_FONT, bold=True, first=True, space_after=0)
 
 
 def footer(s, n):
     tf = textbox(s, Inches(0.6), Inches(7.05), Inches(12.1), Inches(0.35))
     p = tf.paragraphs[0]
-    r = p.add_run(); r.text = "Banking Admin Portal  ·  Senior Angular Developer"
+    r = p.add_run(); r.text = "Banking Admin Portal"
     _set(r, 9, MUTED)
     # page number right-aligned
     tfn = textbox(s, Inches(12.0), Inches(7.05), Inches(0.9), Inches(0.35))
@@ -115,7 +119,7 @@ def panel(s, x, y, w, h, fill=PANEL, line=None, radius=True):
     return shp
 
 
-def box(s, x, y, w, h, lines, fill=PANEL2, edge=ACCENT2, title_color=WHITE,
+def box(s, x, y, w, h, lines, fill=PANEL2, edge=ACCENT2, title_color=TEXT,
         body_color=MUTED, fs_title=13, fs_body=10):
     """lines: (title, [sub, sub]) ; draws a rounded box with title + sublines."""
     shp = panel(s, x, y, w, h, fill=fill, line=edge)
@@ -142,7 +146,7 @@ def arrow(s, x1, y1, x2, y2, color=ACCENT, width=2.0):
 
 
 def code_panel(s, x, y, w, h, code, fs=12):
-    panel(s, x, y, w, h, fill=RGBColor(0x0B, 0x12, 0x20), line=PANEL2)
+    panel(s, x, y, w, h, fill=RGBColor(0x06, 0x2A, 0x14), line=GREEN_DARK)
     tf = textbox(s, x + Pt(10), y + Pt(8), w - Pt(20), h - Pt(16))
     for i, line in enumerate(code.split("\n")):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
@@ -193,19 +197,18 @@ def table(s, x, y, w, headers, rows, col_w=None, fs=12, header_fs=12, row_h=Inch
 # =============================================================================
 # 1 — TITLE
 # =============================================================================
-s = slide()
-panel(s, 0, 0, SW, SH, fill=BG, radius=False)
-# accent ribbon
-rib = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, Inches(2.55), SW, Pt(4))
-rib.fill.solid(); rib.fill.fore_color.rgb = ACCENT; rib.line.fill.background(); rib.shadow.inherit = False
+s = slide(bg=GREEN)
+# gold ribbon
+rib = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, Inches(2.55), SW, Pt(5))
+rib.fill.solid(); rib.fill.fore_color.rgb = YELLOW; rib.line.fill.background(); rib.shadow.inherit = False
 tf = textbox(s, Inches(0.9), Inches(1.5), Inches(11.5), Inches(1.0))
-para(tf, "BANKING ADMIN PORTAL", 16, ACCENT, BODY_FONT, bold=True, first=True, space_after=2)
+para(tf, "BANKING ADMIN PORTAL", 16, YELLOW, BODY_FONT, bold=True, first=True, space_after=2)
 tf2 = textbox(s, Inches(0.9), Inches(2.75), Inches(11.5), Inches(1.4))
 para(tf2, "Managing employees & their linked accounts", 40, WHITE, TITLE_FONT, bold=True, first=True, space_after=4)
-para(tf2, "An Angular 17 + NgRx admin tool, built as a take-home and treated as a real product", 18, MUTED)
+para(tf2, "An Angular 17 + NgRx admin tool, built as a take-home and treated as a real product", 18, PANEL2)
 tf3 = textbox(s, Inches(0.9), Inches(5.7), Inches(11.5), Inches(1.0))
-para(tf3, "Senior Angular Developer  ·  Interview Walkthrough", 16, TEXT, BODY_FONT, bold=True, first=True, space_after=4)
-para(tf3, "Angular 17 · TypeScript · NgRx + Signals · RxJS · Express · Jest · Cypress", 13, ACCENT2, MONO_FONT)
+para(tf3, "Interview Walkthrough", 16, WHITE, BODY_FONT, bold=True, first=True, space_after=4)
+para(tf3, "Angular 17 · TypeScript · NgRx + Signals · RxJS · Express · Jest · Cypress", 13, YELLOW, MONO_FONT)
 
 # =============================================================================
 # 2 — AGENDA
@@ -628,22 +631,20 @@ footer(s, 20)
 # =============================================================================
 # 21 — Closing / Q&A
 # =============================================================================
-s = slide()
-panel(s, 0, 0, SW, SH, fill=BG, radius=False)
-rib = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, Inches(2.4), SW, Pt(4))
-rib.fill.solid(); rib.fill.fore_color.rgb = ACCENT; rib.line.fill.background(); rib.shadow.inherit = False
+s = slide(bg=GREEN)
+rib = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, Inches(2.4), SW, Pt(5))
+rib.fill.solid(); rib.fill.fore_color.rgb = YELLOW; rib.line.fill.background(); rib.shadow.inherit = False
 tf = textbox(s, Inches(0.9), Inches(1.6), Inches(11.5), Inches(0.8))
 para(tf, "Thank you — questions?", 38, WHITE, TITLE_FONT, bold=True, first=True)
 tf2 = textbox(s, Inches(0.9), Inches(2.7), Inches(11.5), Inches(3.5))
-para(tf2, "Where would you like to go deeper?", 16, ACCENT2, BODY_FONT, bold=True, first=True, space_after=14)
+para(tf2, "Where would you like to go deeper?", 16, YELLOW, BODY_FONT, bold=True, first=True, space_after=14)
 for q in ["The NgRx + Signals boundary",
           "The backend layering & cascade-delete transaction",
           "The audit-log design and the compliance angle",
           "The trade-offs I'd reverse (validation drift, auth)"]:
-    para(tf2, q, 15, TEXT, space_after=8)
+    para(tf2, q, 15, WHITE, space_after=8)
 para(tf2, "Curiosity flip: \"What does a great senior-Angular demo look like to you — I'd rather hear what you wish more candidates did.\"",
-     13, MUTED, italic=True, space_after=0)
-footer(s, 21)
+     13, PANEL2, italic=True, space_after=0)
 
 out = "docs/INTERVIEW_PRESENTATION.pptx"
 prs.save(out)

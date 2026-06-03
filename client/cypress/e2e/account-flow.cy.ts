@@ -22,6 +22,23 @@ const uniqueAccountNumber = () => {
   return `4099${Date.now().toString().slice(-12)}`;
 };
 
+/**
+ * Yields the account-row whose masked number ends in `last4`.
+ *
+ * A `cy.contains('code', last4).closest(...)` chain is fragile here: after a
+ * mutation (add/close/reopen) the table re-renders asynchronously, so the
+ * element `contains` resolves can detach from the DOM before the next link in
+ * the chain runs ("element has detached from DOM"). `.filter()` re-runs the
+ * whole `account-row` query on every retry, and the `.should('have.length', 1)`
+ * keeps retrying until the re-render settles - so we always scope into a live
+ * element.
+ */
+const accountRow = (last4: string) =>
+  cy
+    .dataCy('account-row')
+    .filter((_i, el) => el.querySelector('code')?.textContent?.includes(last4) ?? false)
+    .should('have.length', 1);
+
 describe('Account management flow', () => {
   beforeEach(() => {
     cy.visit(`/employees/${AARAV_ID}`);
@@ -97,25 +114,19 @@ describe('Account management flow', () => {
     const last4 = acctNumber.slice(-4);
 
     // Locate the row that contains the new account, then click its Close.
-    cy.dataCy('account-row')
-      .contains('code', last4)
-      .closest('[data-cy="account-row"]')
-      .within(() => {
-        cy.dataCy('close-account').click();
-      });
+    accountRow(last4).within(() => {
+      cy.dataCy('close-account').click();
+    });
 
     // Confirm dialog appears - click OK.
     cy.dataCy('confirm-ok').click();
     cy.dataCy('toast').should('contain.text', 'Account closed');
 
     // The row now has a CLOSED badge and a Reopen button instead of Edit/Close.
-    cy.dataCy('account-row')
-      .contains('code', last4)
-      .closest('[data-cy="account-row"]')
-      .within(() => {
-        cy.contains('CLOSED').should('be.visible');
-        cy.dataCy('reopen-account').should('exist');
-      });
+    accountRow(last4).within(() => {
+      cy.contains('CLOSED').should('be.visible');
+      cy.dataCy('reopen-account').should('exist');
+    });
   });
 
   it('reopens a closed account back to OPEN', () => {
@@ -129,26 +140,17 @@ describe('Account management flow', () => {
     const last4 = acctNumber.slice(-4);
 
     // Close it.
-    cy.dataCy('account-row')
-      .contains('code', last4)
-      .closest('[data-cy="account-row"]')
-      .within(() => cy.dataCy('close-account').click());
+    accountRow(last4).within(() => cy.dataCy('close-account').click());
     cy.dataCy('confirm-ok').click();
 
     // Reopen it.
-    cy.dataCy('account-row')
-      .contains('code', last4)
-      .closest('[data-cy="account-row"]')
-      .within(() => cy.dataCy('reopen-account').click());
+    accountRow(last4).within(() => cy.dataCy('reopen-account').click());
 
     cy.dataCy('toast').should('contain.text', 'Account updated');
-    cy.dataCy('account-row')
-      .contains('code', last4)
-      .closest('[data-cy="account-row"]')
-      .within(() => {
-        cy.contains('OPEN').should('be.visible');
-        cy.dataCy('edit-account').should('exist');
-        cy.dataCy('close-account').should('exist');
-      });
+    accountRow(last4).within(() => {
+      cy.contains('OPEN').should('be.visible');
+      cy.dataCy('edit-account').should('exist');
+      cy.dataCy('close-account').should('exist');
+    });
   });
 });

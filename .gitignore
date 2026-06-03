@@ -27,6 +27,11 @@ logs/
 cypress/videos/
 cypress/screenshots/
 cypress/downloads/
+# Guard: the real Cypress config + specs live in client/. Running `cypress open`
+# from the repo root scaffolds a throwaway project here — never commit it.
+# (Leading slash anchors to the repo root, so client/cypress/ is unaffected.)
+/cypress/
+/cypress.config.js
 
 # Test output
 coverage/

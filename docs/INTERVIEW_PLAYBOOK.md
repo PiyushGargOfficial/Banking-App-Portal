@@ -69,17 +69,6 @@ That's roughly 100 seconds spoken at a normal pace. Time yourself.
 
 ### Why this pitch works
 
-Six moves in 100 seconds:
-
-| Move | What it signals |
-|---|---|
-| Acknowledge it's a take-home **first** | Honest, sets expectations |
-| Reframe the brief as a design question | "I treated it as a real product" — senior posture |
-| Single-developer **without** bragging | Context, not chest-thumping |
-| Three decisions, each with the trade-off named | Architectural ownership |
-| Concrete impact list | Quantified outcomes |
-| Self-critique unprompted | Reflection — the strongest senior signal |
-
 ### The three angles you can take from here
 
 Depending on who's asking, you can pivot from the pitch into:
@@ -170,7 +159,7 @@ When the interviewer asks "how would you scale this 10x?", reach for:
 
 | Bottleneck today | 10x answer |
 |---|---|
-| In-memory store | Postgres with indexes on `email`, `(employeeId, accountId)`, `(employeeId, timestamp DESC)` for the audit-log read pattern |
+| In-memory store | Postgres(open source relational database) with indexes on `email`, `(employeeId, accountId)`, `(employeeId, timestamp DESC)` for the audit-log read pattern |
 | Audit log grows unbounded | Already append-only, so it slots straight into an event-sourcing model. Move the read side to a materialised view in Redis for the per-employee list query |
 | Single Express process | Horizontal scale behind a load balancer — there's no in-process state once the store moves to Postgres |
 | Full employee list re-rendering on every filter change | Server-side pagination already in place (with the `MAX_PAGE_SIZE` clamp), so the client always gets a bounded payload. The CDN can cache `GET /api/employees` with the right Vary headers |
@@ -333,6 +322,10 @@ Mid-project I tried introducing a TypeScript branded type for `EmployeeId` to ma
 **The lesson.** Branded types pay off when an id type is genuinely confusable with another (two different number ids, two different string ids). Here, the cost was real and the benefit was theoretical. I reverted and shipped a lighter alternative — a type alias (`type EmployeeId = string`) used in the Account model as a documentation hint. Same readability win at one-thousandth the refactor cost.
 
 **Pointer.** [`account.model.ts`](../client/src/app/core/models/account.model.ts) uses `EmployeeId` as the FK type.
+
+Questions to Answer:
+1. Whats a TypeScript Branded Type ID?
+2. How would the branded type ID make this enforceable at compile time?
 
 ### 7b. The output-alias trick that broke Angular's strict template compiler
 

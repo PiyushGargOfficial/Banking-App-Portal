@@ -4,8 +4,7 @@
 > [INTERVIEW_PLAYBOOK.md §2](./INTERVIEW_PLAYBOOK.md#2-why-this-project-is-the-right-one-to-showcase).
 > A take-home is small by definition — so *why* is it credible to open a senior
 > interview with? Because senior interviews don't grade size; they grade
-> **judgment**. This doc unpacks the four kinds of judgment this project lets you
-> demonstrate, with the specifics, the file to point at, and the sentence to say.
+> **judgment**.
 
 The table being expanded:
 
@@ -57,7 +56,8 @@ Z" is a trade-off. Four to have loaded:
 
 **The decision:** NgRx stays the single source of truth; Signals appear at three
 specific seams (`toSignal()` bridging facade observables, `signal()` for
-component-local UI state, `effect()` for state-driven DOM side effects).
+component-local UI state, `effect()` for state-driven DOM (document object model) side effects).
+
 
 **What you gave up / why it's credible:** the easy answers were "NgRx everywhere"
 (template ceremony forever, `(obs | async)` everywhere) or "Signals only / drop
